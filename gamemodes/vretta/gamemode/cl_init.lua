@@ -1,7 +1,13 @@
+DEFINE_BASECLASS( "gamemode_base" )
 
 function surface.CreateLegacyFont(font, size, weight, antialias, additive, name, shadow, outline, blursize)
 	surface.CreateFont(name, {font = font, size = size, weight = weight, antialias = antialias, additive = additive, shadow = shadow, outline = outline, blursize = blursize})
 end
+
+-- Create new seperate player model and color variables, so that we dont override sandbox's variables
+
+local vretta_player_model = CreateConVar( "cl_vretta_playermodel", "alyx.mdl",  { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "Set your player model in vretta")
+local vretta_player_color = CreateConVar( "cl_vretta_playercolor", "255 255 0", { FCVAR_ARCHIVE, FCVAR_USERINFO, FCVAR_DONTRECORD }, "Set your player color in vretta")
 
 include( 'shared.lua' )
 include( 'cl_splashscreen.lua' )
@@ -47,24 +53,33 @@ CreateClientConVar( "cl_spec_mode", "5", true, true )
 
 function GM:Initialize()
 	
-	self.BaseClass:Initialize()
+	-- from the base gamemode run the disable scoreboard on start
+	BaseClass.Initialize( self )
 	
 end
+
+local function SeenSplashLocal()
+	if ( GAMEMODE.TeamBased ) then
+		GAMEMODE:ShowTeam()
+	else
+		GAMEMODE:ShowHelp()
+	end
+end
+
+concommand.Add( "seensplashlocal", function(ply, cmd, args, argStr) SeenSplashLocal() end )
 
 function GM:InitPostEntity()
-
-	if ( GAMEMODE.TeamBased ) then 
-		GAMEMODE:ShowTeam();
-	end
+	-- This was changed to make the server send the showteam or showhelp things
+	-- AFTER the player sees the splashscreen, since they were getting called so
+	-- early that they couldn't join the game.
+	timer.Simple(0.5, function() GAMEMODE:ShowSplash() end)
 	
-	GAMEMODE:ShowSplash();
-
 end
 
-local CircleMat = Material( "SGM/playercircle" );
+local CircleMat = Material( "SGM/playercircle" )
 
 function GM:DrawPlayerRing( pPlayer )
-
+	
 	if ( !IsValid( pPlayer ) ) then return end
 	if ( !pPlayer:GetNWBool( "DrawRing", false ) ) then return end
 	if ( !pPlayer:Alive() ) then return end
@@ -81,23 +96,23 @@ function GM:DrawPlayerRing( pPlayer )
 	end
 
 	local color = table.Copy( team.GetColor( pPlayer:Team() ) )
-	color.a = 40;
+	color.a = 40
 
 	render.SetMaterial( CircleMat )
-	render.DrawQuadEasy( tr.HitPos + tr.HitNormal, tr.HitNormal, GAMEMODE.PlayerRingSize, GAMEMODE.PlayerRingSize, color )	
-
+	render.DrawQuadEasy( tr.HitPos + tr.HitNormal, tr.HitNormal, GAMEMODE.PlayerRingSize:GetInt(), GAMEMODE.PlayerRingSize:GetInt(), color )	
+	
 end
 
 hook.Add( "PrePlayerDraw", "DrawPlayerRing", function( ply ) GAMEMODE:DrawPlayerRing( ply ) end ) 
 
 function GM:HUDShouldDraw( name )
 
-	if GAMEMODE.ScoreboardVisible then return false end
+	--if GAMEMODE.ScoreboardVisible then return false end
 	
-	// commented out until HUD elements are made
-	//for k, v in pairs{"CHudHealth", "CHudBattery", "CHudAmmo", "CHudSecondaryAmmo"} do
-	//	if name == v then return false end 
-  	//end 
+	-- commented out until HUD elements are made
+	--for k, v in pairs{"CHudHealth", "CHudBattery", "CHudAmmo", "CHudSecondaryAmmo"} do
+	--	if name == v then return false end 
+  	--end 
 	
 	if name == "CHudDamageIndicator" and not LocalPlayer():Alive() then
 		return false
@@ -108,15 +123,16 @@ function GM:HUDShouldDraw( name )
 end
 
 function GM:OnSpawnMenuOpen()
-	RunConsoleCommand( "lastinv" ); // Fretta is derived from base and has no spawn menu, so give it a use, make it lastinv.
+	RunConsoleCommand( "lastinv" ) -- Fretta is derived from base and has no spawn menu, so give it a use, make it lastinv.
 end
 
 
 function GM:PlayerBindPress( pl, bind, down )
 
-	// Redirect binds to the spectate system
-	if ( pl:IsObserver() && down ) then
-	
+	-- Redirect binds to the spectate system
+	-- Player must be alive also lol
+	if ( !pl:Alive() && pl:IsObserver() && down ) then
+		
 		if ( bind == "+jump" ) then 	RunConsoleCommand( "spec_mode" )	end
 		if ( bind == "+attack" ) then	RunConsoleCommand( "spec_next" )	end
 		if ( bind == "+attack2" ) then	RunConsoleCommand( "spec_prev" )	end
@@ -127,9 +143,9 @@ function GM:PlayerBindPress( pl, bind, down )
 	
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:GetTeamColor( ent )
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:GetTeamColor( ent )
 
 	if ( GAMEMODE.SelectColor && IsValid( ent ) ) then
@@ -148,38 +164,20 @@ function GM:GetTeamColor( ent )
 
 end
 
-
-/*---------------------------------------------------------
-   Name: ShouldDrawLocalPlayer
----------------------------------------------------------*/
-function GM:ShouldDrawLocalPlayer( ply )
-	return ply:CallClassFunction( "ShouldDrawLocalPlayer" )
-end
-
-
-/*---------------------------------------------------------
-   Name: InputMouseApply
----------------------------------------------------------*/
-function GM:InputMouseApply( cmd, x, y, angle )
-	
-	return LocalPlayer():CallClassFunction( "InputMouseApply", cmd, x, y, angle )
-	
-end
-
 function GM:TeamChangeNotification( ply, oldteam, newteam )
 	if( ply && ply:IsValid() ) then
-		local nick = ply:Nick();
-		local oldTeamColor = team.GetColor( oldteam );
-		local newTeamName = team.GetName( newteam );
-		local newTeamColor = team.GetColor( newteam );
+		local nick = ply:Nick()
+		local oldTeamColor = team.GetColor( oldteam )
+		local newTeamName = team.GetName( newteam )
+		local newTeamColor = team.GetColor( newteam )
 		
 		if( newteam == TEAM_SPECTATOR ) then
-			chat.AddText( oldTeamColor, nick, color_white, " is now spectating" ); 
+			chat.AddText( oldTeamColor, nick, color_white, " is now spectating" ) 
 		else
-			chat.AddText( oldTeamColor, nick, color_white, " joined ", newTeamColor, newTeamName );
+			chat.AddText( oldTeamColor, nick, color_white, " joined ", newTeamColor, newTeamName )
 		end
 		
-		chat.PlaySound( "buttons/button15.wav" );
+		chat.PlaySound( "buttons/button15.wav" )
 	end
 end
 net.Receive( "fretta_teamchange", function( um )  if ( GAMEMODE ) then GAMEMODE:TeamChangeNotification( net.ReadEntity(), net.ReadUInt(16), net.ReadUInt(16) ) end end )

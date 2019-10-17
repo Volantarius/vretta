@@ -51,24 +51,26 @@ function GM:ShowMapChooserForGamemode( gmname )
 
 end
 
-
 local ClassChooser = nil
 cl_classsuicide = CreateConVar( "cl_classsuicide", "0", { FCVAR_ARCHIVE } )
 
 function GM:ShowClassChooser( TEAMID )
-
+	
 	if ( !GAMEMODE.SelectClass ) then return end
 	if ( ClassChooser ) then ClassChooser:Remove() end
-
+	
 	ClassChooser = vgui.CreateFromTable( vgui_Splash )
 	ClassChooser:SetHeaderText( "Choose Class" )
-	ClassChooser:SetHoverText( "What class do you want to be?" );
-
+	ClassChooser:SetHoverText( "What class do you want to be?" )
+	
 	Classes = team.GetClass( TEAMID )
+	-- Need to add checks if the team is spectator
+	-- Also if there is no classes for the team default to something
+	
 	for k, v in SortedPairs( Classes ) do
 		
 		local displayname = v
-		local Class = player_class.Get( v )
+		local Class = baseclass.Get( v )
 		if ( Class && Class.DisplayName ) then
 			displayname = Class.DisplayName
 		end
@@ -79,7 +81,8 @@ function GM:ShowClassChooser( TEAMID )
 			description = Class.Description
 		end
 		
-		local func = function() if( cl_classsuicide:GetBool() ) then RunConsoleCommand( "kill" ) end RunConsoleCommand( "changeclass", k ) end
+		local func = function() if( cl_classsuicide:GetBool() ) then RunConsoleCommand( "kill" ) end RunConsoleCommand( "changeclass", k, LocalPlayer(), false ) end
+		
 		local btn = ClassChooser:AddSelectButton( displayname, func, description )
 		btn.m_colBackground = team.GetColor( TEAMID )
 		
@@ -88,5 +91,5 @@ function GM:ShowClassChooser( TEAMID )
 	ClassChooser:AddCancelButton()
 	ClassChooser:MakePopup()
 	ClassChooser:NoFadeIn()
-
+	
 end

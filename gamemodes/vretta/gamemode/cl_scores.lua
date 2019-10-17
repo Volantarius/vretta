@@ -1,6 +1,7 @@
 
 include( "vgui/vgui_scoreboard.lua" )
 
+
 function GM:GetScoreboard()
 
 	if ( IsValid( g_ScoreBoard ) ) then
@@ -16,6 +17,8 @@ end
 
 function GM:ScoreboardShow()
 	
+	-- This sets the scoreboard to be VISIBLE
+	
 	GAMEMODE:GetScoreboard():SetVisible( true )
 	GAMEMODE:PositionScoreboard( GAMEMODE:GetScoreboard() )
 	
@@ -23,9 +26,11 @@ end
 
 function GM:ScoreboardHide()
 	
+	-- This sets the scoreboard to be NOT visible
 	GAMEMODE:GetScoreboard():SetVisible( false )
 	
 end
+
 
 function GM:ScoreboardPlayerPressed(pl)
 end
@@ -39,12 +44,12 @@ function GM:AddScoreboardAvatar( ScoreBoard )
 			return av
 	end
 	
-	ScoreBoard:AddColumn( "", 32, f, 360 ) // Avatar
+	ScoreBoard:AddColumn( "", 32, f, 360 ) -- Avatar
 
 end
 
 function GM:AddScoreboardSpacer( ScoreBoard, iSize )
-	ScoreBoard:AddColumn( "", 16 ) // Gap
+	ScoreBoard:AddColumn( "", 16 ) -- Gap
 end
 
 function GM:AddScoreboardName( ScoreBoard )
@@ -75,18 +80,13 @@ function GM:AddScoreboardPing( ScoreBoard )
 
 end
 
-// THESE SHOULD BE THE ONLY FUNCTION YOU NEED TO OVERRIDE
-
+-- THESE SHOULD BE THE ONLY FUNCTION YOU NEED TO OVERRIDE
 function GM:PositionScoreboard( ScoreBoard )
-
-	if ( GAMEMODE.TeamBased ) then
-		ScoreBoard:SetSize( math.min( 1024, ScrW() ), ScrH() - 50 )
-		ScoreBoard:SetPos( (ScrW() - ScoreBoard:GetWide()) * 0.5,  25 )
-	else
-		ScoreBoard:SetSize( 512, ScrH() - 64 )
-		ScoreBoard:SetPos( (ScrW() - ScoreBoard:GetWide()) / 2, 32 )
-	end
-
+	
+	-- Larger default size that isn't tiny, also doesn't need to always be changed on gamemodes!
+	ScoreBoard:SetSize( ScrW() - (ScrW() / 3), ScrH() - 100 )
+	ScoreBoard:SetPos( (ScrW() - ScoreBoard:GetWide()) / 2, 50 )
+	
 end
 
 function GM:AddScoreboardWantsChange( ScoreBoard )
@@ -108,8 +108,8 @@ end
 
 function GM:CreateScoreboard( ScoreBoard )
 
-	// This makes it so that it's behind chat & hides when you're in the menu
-	// Disable this if you want to be able to click on stuff on your scoreboard
+	-- This makes it so that it's behind chat & hides when you're in the menu
+	-- Disable this if you want to be able to click on stuff on your scoreboard
 	ScoreBoard:ParentToHUD()
 	
 	ScoreBoard:SetRowHeight( 32 )
@@ -122,17 +122,17 @@ function GM:CreateScoreboard( ScoreBoard )
 		ScoreBoard:SetAsBullshitTeam( TEAM_UNASSIGNED )
 		ScoreBoard:SetHorizontal( true )	
 	end
-
+	
 	ScoreBoard:SetSkin( GAMEMODE.HudSkin )
 
-	self:AddScoreboardAvatar( ScoreBoard )		// 1
-	self:AddScoreboardWantsChange( ScoreBoard )	// 2
-	self:AddScoreboardName( ScoreBoard )		// 3
-	self:AddScoreboardKills( ScoreBoard )		// 4
-	self:AddScoreboardDeaths( ScoreBoard )		// 5
-	self:AddScoreboardPing( ScoreBoard )		// 6
-		
-	// Here we sort by these columns (and descending), in this order. You can define up to 4
+	self:AddScoreboardAvatar( ScoreBoard )		-- 1
+	self:AddScoreboardWantsChange( ScoreBoard )	-- 2
+	self:AddScoreboardName( ScoreBoard )		-- 3
+	self:AddScoreboardKills( ScoreBoard )		-- 4
+	self:AddScoreboardDeaths( ScoreBoard )		-- 5
+	self:AddScoreboardPing( ScoreBoard )		-- 6
+	
+	-- Here we sort by these columns (and descending), in this order. You can define up to 4
 	ScoreBoard:SetSortColumns( { 4, true, 5, false, 3, false } )
 
 end

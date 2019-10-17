@@ -1,9 +1,9 @@
-/*
+--[[
 	skin.lua - Fretta Derma Skin
 	-----------------------------------------------------
 	This is the default Fretta skin for Derma. If you want to override the look of Fretta,
 	base a skin of this and change GM.HudSkin.
-*/
+]]
 
 local surface = surface
 local draw = draw
@@ -79,29 +79,29 @@ SKIN.colButtonBorderShadow		= Color( 0, 0, 0, 100 )
 SKIN.fontButton					= "Default"
 
 -- enum for draw order
-DM_ORDER_LATESTATTOP = 1;
-DM_ORDER_LATESTATBOTTOM = 2;
+DM_ORDER_LATESTATTOP = 1
+DM_ORDER_LATESTATBOTTOM = 2
 
 -- basic deathmsg appearance settings
-SKIN.deathMessageBackgroundCol			= Color( 46, 43, 42, 220 );
-SKIN.deathMessageBackgroundLocal		= Color( 75, 75, 75, 200 ); -- this is the colour that the background is when the local player is involved in the deathmsg, so it stands out.
-SKIN.deathMessageActionColor			= Color( 200, 200, 200 );
+SKIN.deathMessageBackgroundCol			= Color( 46, 43, 42, 220 )
+SKIN.deathMessageBackgroundLocal		= Color( 75, 75, 75, 200 ) -- this is the colour that the background is when the local player is involved in the deathmsg, so it stands out.
+SKIN.deathMessageActionColor			= Color( 200, 200, 200 )
 
 local matBlurScreen = Material( "pp/blurscreen" )
 
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    DrawGenericBackground
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function SKIN:DrawGenericBackground( x, y, w, h, color )
 
 	draw.RoundedBox( 4, x, y, w, h, color )
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    DrawLinedButtonBorder
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function SKIN:DrawLinedButtonBorder( x, y, w, h, depressed )
 
 	surface.SetDrawColor( Color( 0, 0, 0, 200 ) )
@@ -109,9 +109,9 @@ function SKIN:DrawLinedButtonBorder( x, y, w, h, depressed )
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
 	Button
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function SKIN:PaintCancelButton( panel )
 
 	local w, h = panel:GetSize()
@@ -197,35 +197,35 @@ function SKIN:SchemeSelectButton( panel )
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
 	ListViewLine
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function SKIN:PaintListViewLine( panel )
 
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
 	ListViewLine
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function SKIN:PaintListView( panel )
 
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
 	ListViewLabel
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function SKIN:PaintScorePanelHeader( panel )
 
-	//surface.SetDrawColor( panel.cTeamColor )	
-	//panel:DrawFilledRect()
+	--surface.SetDrawColor( panel.cTeamColor )	
+	--panel:DrawFilledRect()
 	
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
 	ListViewLabel
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function SKIN:PaintScorePanelLine( panel )
 
 	local Tall = panel:GetTall()
@@ -245,32 +245,32 @@ function SKIN:PaintScorePanelLine( panel )
 		
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
 	PaintScorePanel
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function SKIN:PaintScorePanel( panel )
 
 	surface.SetMaterial( matBlurScreen )	
 	surface.SetDrawColor( 255, 255, 255, 255 )
-		
+	
 	local x, y = panel:LocalToScreen( 0, 0 )
 	
 	matBlurScreen:SetFloat( "$blur", 5 )
 	render.UpdateScreenEffectTexture()
 	surface.DrawTexturedRect( x*-1, y*-1, ScrW(), ScrH() )
 	
-	//matBlurScreen:SetFloat( "$blur", 3 )
-	//render.UpdateScreenEffectTexture()
-	//surface.DrawTexturedRect( x*-1, y*-1, ScrW(), ScrH() )
+	--matBlurScreen:SetFloat( "$blur", 3 )
+	--render.UpdateScreenEffectTexture()
+	--surface.DrawTexturedRect( x*-1, y*-1, ScrW(), ScrH() )
 		
 	draw.RoundedBox( 8, 0, 8, panel:GetWide(), panel:GetTall()-8, Color( 200, 200, 200, 150 ) )
 	
 end
 
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
 	LayoutTeamScoreboardHeader
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function SKIN:LayoutTeamScoreboardHeader( panel )
 
 	panel.TeamName:StretchToParent( 0, 0, 0, 0 )
@@ -294,11 +294,11 @@ function SKIN:PaintTeamScoreboardHeader( panel )
 end
 
 function SKIN:SchemeScorePanelLabel( panel )
-
+	
 	--panel:SetTextColor( GAMEMODE:GetTeamColor( panel.pPlayer ) )
 	panel:SetTextColor( color_white )
 	panel:SetFontInternal( "FRETTA_MEDIUM_SHADOW" )
-
+	
 end
 
 function SKIN:PaintScorePanelLabel( panel )
@@ -312,9 +312,11 @@ function SKIN:PaintScorePanelLabel( panel )
 end
 
 function SKIN:SchemeScorePanelHeaderLabel( panel )
-
+	
 	panel:SetTextColor( Color( 70, 70, 70, 255 ) )
 	panel:SetFontInternal( "HudSelectionText" )
+	panel:SetPaintBackgroundEnabled( true )
+	panel:SetBGColor( 200, 200, 200, 255 )
 		
 end
 
@@ -325,9 +327,9 @@ function SKIN:SchemeSpectatorInfo( panel )
 		
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
 	ScoreHeader
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function SKIN:PaintScoreHeader( panel )
 
 	draw.RoundedBox( 8, 0, 0, panel:GetWide(), panel:GetTall()*2, Color( 50, 90, 160 ) )
@@ -358,9 +360,9 @@ function SKIN:SchemeScoreHeader( panel )
 		
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
 	DeathMessages
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function SKIN:PaintGameNotice( panel )
 
 	if ( panel.m_bHighlight ) then
@@ -374,14 +376,14 @@ end
 
 function SKIN:SchemeGameNoticeLabel( panel )
 
-	panel:SetFontInternal( "FRETTA_NOTIFY" );
+	panel:SetFontInternal( "FRETTA_NOTIFY" )
 	DLabel.ApplySchemeSettings( panel )
 	
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
 	GamemodeButton
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function SKIN:PaintGamemodeButton( panel )
 
 	local w, h = panel:GetSize()
@@ -412,9 +414,9 @@ function SKIN:SchemeGamemodeButton( panel )
 end
 
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
 	PanelButton
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function SKIN:PaintPanelButton( panel )
 
 	local w, h = panel:GetSize()

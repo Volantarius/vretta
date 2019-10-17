@@ -1,24 +1,26 @@
 local PANEL = {}
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: Init
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function PANEL:Init()
 
 end
 
-function PANEL:SetLabel( text )
-
+function PANEL:SetLabel( text, font, color )
+	font = font or self:GetTextLabelFont()
+	color = color or self:GetTextLabelColor()
+	
 	self.LabelPanel = vgui.Create( "DLabel", self )
 	self.LabelPanel:SetText( text )
-	self.LabelPanel:SetTextColor( self:GetTextLabelColor() )
-	self.LabelPanel:SetFont( self:GetTextLabelFont() )
+	self.LabelPanel:SetTextColor( color )
+	self.LabelPanel:SetFont( font )
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: PerformLayout
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function PANEL:PerformLayout()
 
 	self:SetContentAlignment( 5 )

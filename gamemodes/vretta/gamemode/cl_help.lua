@@ -6,7 +6,7 @@ function GM:ShowHelp()
 	
 		Help = vgui.CreateFromTable( vgui_Splash )
 		Help:SetHeaderText( GAMEMODE.Name or "Untitled Gamemode" )
-		Help:SetHoverText( GAMEMODE.Help or "No Help Avaliable" );
+		Help:SetHoverText( GAMEMODE.Help or "No Help Avaliable" )
 		
 		Help.lblFooterText.Think = function( panel ) 
 										local tl = GAMEMODE:GetGameTimeLeft()
@@ -17,7 +17,7 @@ function GM:ShowHelp()
 										panel:SetText( "Time Left: " .. util.ToMinutesSeconds( tl ) ) 
 									end
 
-		if ( GetConVarNumber( "fretta_voting" ) != 0 ) then
+		if ( GetConVar( "fretta_voting" ):GetInt() != 0 ) then
 			local btn = Help:AddSelectButton( "Vote For Change", function() RunConsoleCommand( "voteforchange" ) end )
 			btn.m_colBackground = Color( 255, 200, 100 )
 			btn:SetDisabled( LocalPlayer():GetNWBool( "WantsVote" ) ) 
@@ -59,22 +59,23 @@ function GM:ShowHelp()
 		if ( GAMEMODE.SelectModel ) then
 		
 			local function CreateModelPanel()
-							
+					
 				local pnl = vgui.Create( "DGrid" )
-			
+				
 				pnl:SetCols( 6 )
 				pnl:SetColWide( 66 )
 				pnl:SetRowHeight( 66 )
-			
-				for name, model in pairs( list.Get( "PlayerOptionsModel" ) ) do
+				
+				-- Updated the list to use the player manager list
+				for name, model in SortedPairs( player_manager.AllValidModels() ) do
 					
 					local icon = vgui.Create( "SpawnIcon" )
-					icon.DoClick = function() surface.PlaySound( "ui/buttonclickrelease.wav" ) RunConsoleCommand( "cl_playermodel", name ) end
-					icon.PaintOver = function() if ( GetConVarString( "cl_playermodel" ) == name ) then surface.SetDrawColor( Color( 255, 210 + math.sin(RealTime()*10)*40, 0 ) ) surface.DrawOutlinedRect( 4, 4, icon:GetWide()-8, icon:GetTall()-8 ) surface.DrawOutlinedRect( 3, 3, icon:GetWide()-6, icon:GetTall()-6 ) end end
+					icon.DoClick = function() surface.PlaySound( "ui/buttonclickrelease.wav" ) RunConsoleCommand( "cl_vretta_playermodel", name ) end
+					icon.PaintOver = function() if ( GetConVar("cl_vretta_playermodel"):GetString() == name ) then surface.SetDrawColor( Color( 255, 210 + math.sin(RealTime()*10)*40, 0 ) ) surface.DrawOutlinedRect( 4, 4, icon:GetWide()-8, icon:GetTall()-8 ) surface.DrawOutlinedRect( 3, 3, icon:GetWide()-6, icon:GetTall()-6 ) end end
 					icon:SetModel( model )
 					icon:SetSize( 64, 64 )
 					icon:SetTooltip( name )
-						
+					
 					pnl:AddItem( icon )
 					
 				end
@@ -90,29 +91,17 @@ function GM:ShowHelp()
 		if ( GAMEMODE.SelectColor ) then
 		
 			local function CreateColorPanel()
-							
-				local pnl = vgui.Create( "DGrid" )
-			
-				pnl:SetCols( 10 )
-				pnl:SetColWide( 36 )
-				pnl:SetRowHeight( 128 )
-			
-				for name, colr in pairs( list.Get( "PlayerColours" ) ) do
-					
-					local icon = vgui.Create( "DButton" )
-					icon:SetText( "" )
-					icon.DoClick = function() surface.PlaySound( "ui/buttonclickrelease.wav" ) RunConsoleCommand( "cl_playercolor", name ) end
-					icon.Paint = function() surface.SetDrawColor( colr ) icon:DrawFilledRect() end
-					icon.PaintOver = function() if ( GetConVarString( "cl_playercolor" ) == name ) then surface.SetDrawColor( Color( 255, 210 + math.sin(RealTime()*10)*40, 0 ) ) surface.DrawOutlinedRect( 4, 4, icon:GetWide()-8, icon:GetTall()-8 ) surface.DrawOutlinedRect( 3, 3, icon:GetWide()-6, icon:GetTall()-6 ) end end
-					icon:SetSize( 32, 128 )
-					icon:SetTooltip( name )
-						
-					pnl:AddItem( icon )
-					
-				end
+				-- Use the new color mixer panel
 				
-				return pnl
+				local plycol = vgui.Create( "DColorMixer" )
+				plycol:SetAlphaBar( false )
+				plycol:SetPalette( false )
+				plycol:SetVector( Vector( GetConVar("cl_vretta_playercolor"):GetString() ) )
+				plycol:SetSize( 320, 256 )
 				
+				plycol.ValueChanged = function () RunConsoleCommand( "cl_vretta_playercolor", tostring( plycol:GetVector() ) ) end
+				
+				return plycol
 			end
 			
 			Help:AddPanelButton( "icon16/application_view_tile.png", "Choose Player Color", CreateColorPanel )

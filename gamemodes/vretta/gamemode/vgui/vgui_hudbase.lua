@@ -14,8 +14,8 @@ function PANEL:Init()
 	
 end
 
-// This makes it so that it's behind chat & hides when you're in the menu
-// But it also removes the ability to click on it. So override it if you want to.
+-- This makes it so that it's behind chat & hides when you're in the menu
+-- But it also removes the ability to click on it. So override it if you want to.
 function PANEL:ChooseParent()
 	self:ParentToHUD()
 end

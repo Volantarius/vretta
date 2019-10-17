@@ -2,9 +2,9 @@ local PANEL = {}
 
 AccessorFunc( PANEL, "Spacing", 	"Spacing" )
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: Init
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function PANEL:Init()
 
 	self.Items = {}
@@ -18,15 +18,15 @@ function PANEL:Init()
 
 end
 
-// This makes it so that it's behind chat & hides when you're in the menu
-// But it also removes the ability to click on it. So override it if you want to.
+-- This makes it so that it's behind chat & hides when you're in the menu
+-- But it also removes the ability to click on it. So override it if you want to.
 function PANEL:ChooseParent()
 	self:ParentToHUD()
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: GetCanvas
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function PANEL:Clear( bDelete )
 
 	for k, panel in pairs( self.Items ) do
@@ -48,9 +48,9 @@ function PANEL:Clear( bDelete )
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: AddItem
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function PANEL:AddItem( item, relative, pos )
 
 	if (!item || !item:IsValid()) then return end
@@ -130,7 +130,7 @@ function PANEL:PositionItem( item )
 	if ( item.HUDPos == 6 && IsValid( item.HUDrelative ) ) then
 		item:MoveRightOf( item.HUDrelative, SPACING )
 	end
-
+	
 	item.Positioned = true
 	
 end
@@ -139,9 +139,9 @@ function PANEL:Think()
 	self:InvalidateLayout()
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: PerformLayout
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function PANEL:PerformLayout()
 
 	self:SetPos( 32, 32 )

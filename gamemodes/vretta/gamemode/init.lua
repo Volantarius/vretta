@@ -4,11 +4,12 @@
 	The entire server side bit of Fretta starts here.
 ]]
 
+DEFINE_BASECLASS( "gamemode_base" )
+
+-- You must add these to make sure the client recieves these scripts
 AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 AddCSLuaFile( "skin.lua" )
-AddCSLuaFile( "player_class.lua" )
-AddCSLuaFile( "class_default.lua" )
 AddCSLuaFile( "cl_splashscreen.lua" )
 AddCSLuaFile( "cl_selectscreen.lua" )
 AddCSLuaFile( "cl_gmchanger.lua" )
@@ -27,108 +28,68 @@ AddCSLuaFile( "cl_hud.lua" )
 AddCSLuaFile( "cl_deathnotice.lua" )
 AddCSLuaFile( "cl_scores.lua" )
 AddCSLuaFile( "cl_notify.lua" )
-AddCSLuaFile( "player_colours.lua" )
 
 include( "shared.lua" )
+include( "player.lua" )
 include( "sv_gmchanger.lua" )
 include( "sv_spectator.lua" )
 include( "round_controller.lua" )
+include( "game_controller.lua" )
 include( "utility.lua" )
 
 GM.ReconnectedPlayers = {}
 
 function GM:Initialize()
-
+	
 	util.AddNetworkString("PlayableGamemodes")
 	util.AddNetworkString("RoundAddedTime")
 	util.AddNetworkString("PlayableGamemodes")
 	util.AddNetworkString("fretta_teamchange")
-
+	
+	-- We need a default single game controller so that we can also have a delay and what not
+	
 	-- If we're round based, wait 3 seconds before the first round starts
 	if ( GAMEMODE.RoundBased ) then
 		timer.Simple( 3, function() GAMEMODE:StartRoundBasedGame() end )
 	end
-
+	
 	if ( GAMEMODE.AutomaticTeamBalance ) then
 		timer.Create( "CheckTeamBalance", 30, 0, function() GAMEMODE:CheckTeamBalance() end )
 	end
 end
 
 function GM:Think()
-
-	self.BaseClass:Think()
-
-	for k,v in pairs( player.GetAll() ) do
-
-		local Class = v:GetPlayerClass()
-		if ( !Class ) then return end
-
-		v:CallClassFunction( "Think" )
-
-	end
-
-	-- Game time related
+	-- Check if the round or game is over from the time
 	if( !GAMEMODE.IsEndOfGame && ( !GAMEMODE.RoundBased || ( GAMEMODE.RoundBased && GAMEMODE:CanEndRoundBasedGame() ) ) && CurTime() >= GAMEMODE.GetTimeLimit() ) then
 		GAMEMODE:EndOfGame( true )
 	end
-
 end
 
-/*---------------------------------------------------------
-   Name: gamemode:CanPlayerSuicide( Player ply )
-   Desc: Is the player allowed to commit suicide?
----------------------------------------------------------*/
-function GM:CanPlayerSuicide( ply )
-
-	if( ply:Team() == TEAM_UNASSIGNED || ply:Team() == TEAM_SPECTATOR ) then
-		return false -- no suicide in spectator mode
-	end
-
-	return !GAMEMODE.NoPlayerSuicide
-	
-end 
-
-/*---------------------------------------------------------
-   Name: gamemode:PlayerSwitchFlashlight( Player ply, Bool on )
-   Desc: Can we turn our flashlight on or off?
----------------------------------------------------------*/
-function GM:PlayerSwitchFlashlight( ply, on ) 
-
-	if ( ply:Team() == TEAM_SPECTATOR || ply:Team() == TEAM_UNASSIGNED || ply:Team() == TEAM_CONNECTING ) then
-		return not on
-	end
-
-	return ply:CanUseFlashlight()
-	
-end
-
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:PlayerInitialSpawn( Player ply )
    Desc: Our very first spawn in the game.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:PlayerInitialSpawn( pl )
-
 	pl:SetTeam( TEAM_UNASSIGNED )
-	pl:SetPlayerClass( "Spectator" )
-	pl.m_bFirstSpawn = true
+	pl:SetNWBool( "FirstSpawn", true )
+	
 	pl:UpdateNameColor()
 	
 	GAMEMODE:CheckPlayerReconnected( pl )
-
 end
 
 function GM:CheckPlayerReconnected( pl )
-
+	
 	if table.HasValue( GAMEMODE.ReconnectedPlayers, pl:UniqueID() ) then
 		GAMEMODE:PlayerReconnected( pl )
 	end
-
+	
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:PlayerReconnected( Player ply )
    Desc: Called if the player has appeared to have reconnected.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:PlayerReconnected( pl )
 
 	-- Use this hook to do stuff when a player rejoins and has been in the server previously
@@ -136,11 +97,11 @@ function GM:PlayerReconnected( pl )
 end
 
 function GM:PlayerDisconnected( pl )
-
+	
 	table.insert( GAMEMODE.ReconnectedPlayers, pl:UniqueID() )
-
-	self.BaseClass:PlayerDisconnected( pl )
-
+	
+	BaseClass.PlayerDisconnected(self, pl)
+	
 end  
 
 function GM:ShowHelp( pl )
@@ -149,149 +110,147 @@ function GM:ShowHelp( pl )
 	
 end
 
-
 function GM:PlayerSpawn( pl ) 
-
+	
 	pl:UpdateNameColor()
-
+	
 	-- The player never spawns straight into the game in Fretta
 	-- They spawn as a spectator first (during the splash screen and team picking screens)
-	if ( pl.m_bFirstSpawn ) then
 	
-		pl.m_bFirstSpawn = nil
+	if ( pl:GetNWBool( "FirstSpawn", true ) ) then
+		
+		pl:SetNWBool( "FirstSpawn", false )
 		
 		if ( pl:IsBot() ) then
-		
+			
 			GAMEMODE:AutoTeam( pl )
 			
 			-- The bot doesn't send back the 'seen splash' command, so fake it.
+			-- Specifically in team based, we spawn the players at the beginning so we dont need to spawn them now
 			if ( !GAMEMODE.TeamBased && !GAMEMODE.NoAutomaticSpawning ) then
 				pl:Spawn()
 			end
-	
-		else
-		
-			pl:StripWeapons()
-			GAMEMODE:PlayerSpawnAsSpectator( pl )
 			
-			-- Follow a random player until we join a team
-			if ( #player.GetAll() > 1 ) then
-				pl:Spectate( OBS_MODE_CHASE )
-				pl:SpectateEntity( table.Random( player.GetAll() ) )
-			end
+		else
+			
+			-- Set the player to spectator and yeah...
+			-- This seems to be called before the splashscreen thing :()
+			
+			pl:SetTeam( TEAM_SPECTATOR )
+			pl:Spectate( OBS_MODE_ROAMING )
+			GAMEMODE:BecomeObserver( pl )
 			
 		end
-	
+		
 		return
 		
 	end
-		
-	pl:CheckPlayerClassOnSpawn()
-		
-	if ( GAMEMODE.TeamBased && ( pl:Team() == TEAM_SPECTATOR || pl:Team() == TEAM_UNASSIGNED ) ) then
-
-		GAMEMODE:PlayerSpawnAsSpectator( pl )
-		return
 	
+	-- Dont spawn instead go into spectator mode
+	-- Also if team based don't allow unassigned player spawns
+	if ( pl:Team() == TEAM_SPECTATOR || ( GAMEMODE.TeamBased && pl:Team() == TEAM_UNASSIGNED) ) then
+		GAMEMODE:BecomeObserver( pl )
+		return
+	end
+	
+	local Classes = team.GetClass( pl:Team() ) -- Returns nil if no classes
+	local SpawnClass = pl:GetNWString( "SpawnClass", "" )
+	
+	-- Player requested a new class, so we set that here
+	-- Elsewhere the class gets changed with PlayerJoinTeam
+	
+	if ( Classes != nil and SpawnClass != "" ) then
+		
+		player_manager.SetPlayerClass( pl, SpawnClass )
+		
+		pl:SetNWString( "SpawnClass", "" )
 	end
 	
 	-- Stop observer mode
 	pl:UnSpectate()
-
-	-- Call item loadout function
-	hook.Call( "PlayerLoadout", GAMEMODE, pl )
+	
+	-- Get the player class just in case nothing was changed on last spawn!
+	local pClass = player_manager.GetPlayerClass( pl )
+	local gClass = baseclass.Get( pClass )
+	
+	if ( gClass.DrawTeamRing ) then pl:SetNWBool( "DrawRing", true ) else pl:SetNWBool( "DrawRing", false ) end
+	
+	player_manager.OnPlayerSpawn( pl )
+	player_manager.RunClass( pl, "Spawn" )
 	
 	-- Set player model
 	hook.Call( "PlayerSetModel", GAMEMODE, pl )
-	
+	-- Set the player model before setting up the hand models
 	pl:SetupHands()
 	
-	-- Call class function
-	pl:OnSpawn()
-	
-end
-
-
-function GM:PlayerLoadout( pl )
-
-	pl:CheckPlayerClassOnSpawn()
-
-	pl:OnLoadout()
-	
-	-- Switch to prefered weapon if they have it
-	local cl_defaultweapon = pl:GetInfo( "cl_defaultweapon" )
-	
-	if ( pl:HasWeapon( cl_defaultweapon )  ) then
-		pl:SelectWeapon( cl_defaultweapon ) 
-	end
-	
-end
-
-
-function GM:PlayerSetModel( pl )
-
-	pl:OnPlayerModel()
-	
+	-- Call item loadout function
+	hook.Call( "PlayerLoadout", GAMEMODE, pl )
 end
 
 
 function GM:AutoTeam( pl )
-
+	
 	if ( !GAMEMODE.AllowAutoTeam ) then return end
 	if ( !GAMEMODE.TeamBased ) then return end
 	
 	GAMEMODE:PlayerRequestTeam( pl, team.BestAutoJoinTeam() )
-
 end
 
 concommand.Add( "autoteam", function( pl, cmd, args ) hook.Call( "AutoTeam", GAMEMODE, pl ) end )
 
-
 function GM:PlayerRequestClass( ply, class, disablemessage )
+	-- IMPORTANT: the class is actually a index for the classes table!
 	
 	local Classes = team.GetClass( ply:Team() )
-	if (!Classes) then return end
+	if ( Classes == nil ) then return end
 	
 	local RequestedClass = Classes[ class ]
-	if (!RequestedClass) then return end
+	if ( RequestedClass == nil ) then return end
 	
-	if ( ply:Alive() && SERVER ) then
-	
-		if ( ply.m_SpawnAsClass && ply.m_SpawnAsClass == RequestedClass ) then return end
-	
-		ply.m_SpawnAsClass = RequestedClass
+	if ( ply:Alive() ) then
+		
+		local SpawnClass = ply:GetNWString( "SpawnClass", "" )
+		
+		if ( SpawnClass != "" && SpawnClass == RequestedClass ) then return end
+		
+		ply:SetNWString( "SpawnClass", RequestedClass )
 		
 		if ( !disablemessage ) then
-			ply:ChatPrint( "Your class will change to '".. player_class.GetClassName( RequestedClass ) .. "' when you respawn" )
+			ply:ChatPrint( "Your class will change to '".. baseclass.Get( RequestedClass ).DisplayName .. "' when you respawn" )
 		end
 		
 	else
-		self:PlayerJoinClass( ply, RequestedClass )
-		ply.m_SpawnAsClass = nil
+		self:PlayerJoinClass( ply, RequestedClass, ply:Team() )
 	end
 	
 end
 
 concommand.Add( "changeclass", function( pl, cmd, args ) hook.Call( "PlayerRequestClass", GAMEMODE, pl, tonumber(args[1]) ) end )
 
-
 local function SeenSplash( ply )
 
 	if ( ply.m_bSeenSplashScreen ) then return end
 	ply.m_bSeenSplashScreen = true
 	
-	if ( !GAMEMODE.TeamBased && !GAMEMODE.NoAutomaticSpawning ) then
-		ply:KillSilent()
-	end
+	-- Kill the player preventing them from spectating in a weird player class
+	ply:KillSilent()
 	
 end
 
 concommand.Add( "seensplash", SeenSplash )
 
-
+--[[-------------------------------------------------------------------------
+	PlayerJoinTeam
+	
+	Please use this function whenever you change the player's team
+	This will set the team regardless of autoteam,
+	will set to spectator mode CORRECTLY, and give the option to choose
+	a team class if enabled.
+---------------------------------------------------------------------------]]
 function GM:PlayerJoinTeam( ply, teamid )
 	
 	local iOldTeam = ply:Team()
+	ply:SetNWInt( "OldTeam", iOldTeam )
 	
 	if ( ply:Alive() ) then
 		if ( iOldTeam == TEAM_SPECTATOR || (iOldTeam == TEAM_UNASSIGNED && GAMEMODE.TeamBased) ) then
@@ -306,84 +265,116 @@ function GM:PlayerJoinTeam( ply, teamid )
 	
 	local Classes = team.GetClass( teamid )
 	
-	
 	-- Needs to choose class
-	if ( Classes && #Classes > 1 ) then
+	if ( Classes != nil && #Classes > 1 ) then
 	
 		if ( ply:IsBot() || !GAMEMODE.SelectClass ) then
-	
-			GAMEMODE:PlayerRequestClass( ply, math.random( 1, #Classes ) )
-	
+			-- If select class is disabled then select a random one
+			GAMEMODE:PlayerRequestClass( ply, math.random( 1, #Classes ), true )
+			ply:EnableRespawn()
 		else
-
-			ply.m_fnCallAfterClassChoose = function() 
-												ply.DeathTime = CurTime()
-												GAMEMODE:OnPlayerChangedTeam( ply, iOldTeam, teamid ) 
-												ply:EnableRespawn() 
-											end
-
+			
+			ply:SetNWBool( "ChangedClass", true )
+			
 			ply:SendLua( "GAMEMODE:ShowClassChooser( ".. teamid .." )" )
 			ply:DisableRespawn()
-			ply:SetRandomClass() -- put the player in a VALID class in case they don't choose and get spawned
+			
+			-- put the player in a VALID class in case they don't choose and get spawned
+			player_manager.SetPlayerClass( ply, table.Random( Classes ) )
+			
 			return
-					
 		end
 		
 	end
 	
 	-- No class, use default
-	if ( !Classes || #Classes == 0 ) then
-		ply:SetPlayerClass( "Default" )
+	if ( (Classes == nil || #Classes == 0) and teamid != TEAM_SPECTATOR ) then
+		ErrorNoHalt( "Fretta: no classes found for team: " .. teamid .. "\n" )
+		
+		player_manager.SetPlayerClass( ply, "player_default_vretta" )
+		ply:EnableRespawn()
 	end
 	
 	-- Only one class, use that
-	if ( Classes && #Classes == 1 ) then
-		GAMEMODE:PlayerRequestClass( ply, 1 )
+	if ( Classes != nil && #Classes == 1 ) then
+		
+		GAMEMODE:PlayerRequestClass( ply, 1, true )
+		ply:EnableRespawn()
+	end
+	
+	if ( teamid == TEAM_SPECTATOR ) then
+		-- Remove all classes for spectators
+		player_manager.ClearPlayerClass( ply )
 	end
 	
 	gamemode.Call("OnPlayerChangedTeam", ply, iOldTeam, teamid )
-	
 end
 
-function GM:PlayerJoinClass( ply, classname )
-
-	ply.m_SpawnAsClass = nil
-	ply:SetPlayerClass( classname )
+function GM:PlayerJoinClass( ply, classname, teamid )
 	
-	if ( ply.m_fnCallAfterClassChoose ) then
+	ply:SetNWString( "SpawnClass", "" )
+	player_manager.SetPlayerClass( ply, classname )
 	
-		ply.m_fnCallAfterClassChoose()
-		ply.m_fnCallAfterClassChoose = nil
+	-- If player changed their class then change it here
+	if ( ply:GetNWBool( "ChangedClass", false ) ) then
+		local OldTeam = ply:GetNWInt( "OldTeam", teamid )
 		
+		ply.DeathTime = CurTime()
+		GAMEMODE:OnPlayerChangedTeam( ply, OldTeam, teamid )
+		ply:EnableRespawn()
+		
+		-- Switch back to normal
+		ply:SetNWBool( "ChangedClass", false )
 	end
 
 end
 
-function GM:OnPlayerChangedTeam( ply, oldteam, newteam )
-
-	-- Here's an immediate respawn thing by default. If you want to 
-	-- re-create something more like CS or some shit you could probably
-	-- change to a spectator or something while dead.
-	if ( newteam == TEAM_SPECTATOR ) then
+--[[---------------------------------------------------------
+   Name: gamemode:PlayerCanJoinTeam( Player ply, Number teamid )
+   Desc: Are we allowed to join a team? Return true if so.
+---------------------------------------------------------]]
+function GM:PlayerCanJoinTeam( ply, teamid )
 	
-		-- If we changed to spectator mode, respawn where we are
-		local Pos = ply:EyePos()
-		ply:Spawn()
-		ply:SetPos( Pos )
+	if ( SERVER && !BaseClass.PlayerCanJoinTeam( self, ply, teamid ) ) then 
+		return false 
+	end
+	
+	if ( GAMEMODE:TeamHasEnoughPlayers( teamid ) ) then
+		ply:ChatPrint( "That team is full!" )
+		ply:SendLua("GAMEMODE:ShowTeam()")
+		return false
+	end
+	
+	return true
+	
+end
+
+function GM:OnPlayerChangedTeam( ply, oldteam, newteam )
+	
+	if ( newteam == TEAM_SPECTATOR ) then
+		-- For spectator to work, you dont have to spawn them
+		-- Simply run BecomeObserver and thats it
+		
+		ply:StripWeapons()
+		ply:StripAmmo()
+		GAMEMODE:BecomeObserver( ply )
+		
+		--ply:ConCommand( "cl_spec_mode "..OBS_MODE_CHASE )
+		--ply:Spectate( OBS_MODE_CHASE ) --Default add auto player spectate
 		
 	elseif ( oldteam == TEAM_SPECTATOR ) then
-	
+		
 		-- If we're changing from spectator, join the game
 		if ( !GAMEMODE.NoAutomaticSpawning ) then
 			ply:Spawn()
 		end
-	
+		
 	elseif ( oldteam ~= TEAM_SPECTATOR ) then
-
+		
 		ply.LastTeamChange = CurTime()
-
+		
 	else
-	
+		
 		-- If we're straight up changing teams just hang
 		--  around until we're ready to respawn onto the 
 		--  team that we chose
@@ -393,13 +384,15 @@ function GM:OnPlayerChangedTeam( ply, oldteam, newteam )
 	--PrintMessage( HUD_PRINTTALK, Format( "%s joined '%s'", ply:Nick(), team.GetName( newteam ) ) )
 	
 	-- Send net msg for team change
- 
-    net.Start( "fretta_teamchange" )
-		net.WriteEntity( ply )
-		net.WriteUInt( oldteam, 16 )
-		net.WriteUInt( newteam, 16 )
-    net.Broadcast()
-	
+ 	
+ 	if ( GAMEMODE.PrintTeamChanges ) then
+ 		net.Start( "fretta_teamchange" )
+			net.WriteEntity( ply )
+			net.WriteUInt( oldteam, 16 )
+			net.WriteUInt( newteam, 16 )
+	  net.Broadcast()
+ 	end
+ 	
 end
 
 function GM:CheckTeamBalance()
@@ -424,10 +417,10 @@ function GM:CheckTeamBalance()
 				while team.NumPlayers( id ) < team.NumPlayers( highest ) - 1 do
 				
 					local ply, reason = GAMEMODE:FindLeastCommittedPlayerOnTeam( highest )
-
+					
 					ply:Kill()
-					ply:SetTeam( id )
-
+					GAMEMODE:PlayerJoinTeam( ply, id )
+					
 					-- Todo: Notify player 'you have been swapped'
 					-- This is a placeholder
 					PrintMessage(HUD_PRINTTALK, ply:Name().." has been changed to "..team.GetName( id ).." for team balance. ("..reason..")" )
@@ -459,15 +452,17 @@ function GM:FindLeastCommittedPlayerOnTeam( teamid )
 	if worstteamswapper then
 		return worstteamswapper, "They changed teams recently"
 	end
-
+	
 	return worst, "Least points on their team"
 	
 end
 
 function GM:OnEndOfGame(bGamemodeVote)
-
+	-- This is where you would show extra things before switching to gamemode vote
+	-- SET gm.votingdelay to increase the duration of this screen
+	
 	for k,v in pairs( player.GetAll() ) do
-
+		
 		v:Freeze(true)
 		v:ConCommand( "+showscores" )
 		
@@ -481,14 +476,14 @@ function GM:EndOfGame( bGamemodeVote )
 	if GAMEMODE.IsEndOfGame then return end
 
 	GAMEMODE.IsEndOfGame = true
-	SetGlobalBool( "IsEndOfGame", true );
+	SetGlobalBool( "IsEndOfGame", true )
 	
-	gamemode.Call("OnEndOfGame", bGamemodeVote);
+	gamemode.Call("OnEndOfGame", bGamemodeVote)
 	
 	if ( bGamemodeVote ) then
 	
 		MsgN( "Starting gamemode voting..." )
-		PrintMessage( HUD_PRINTTALK, "Starting gamemode voting..." );
+		PrintMessage( HUD_PRINTTALK, "Starting gamemode voting..." )
 		timer.Simple( GAMEMODE.VotingDelay, function() GAMEMODE:StartGamemodeVote() end )
 		
 	end
@@ -518,7 +513,7 @@ end
 
 
 function GM:PlayerDeathThink( pl )
-
+	
 	pl.DeathTime = pl.DeathTime or CurTime()
 	local timeDead = CurTime() - pl.DeathTime
 	
@@ -527,16 +522,22 @@ function GM:PlayerDeathThink( pl )
 		GAMEMODE:BecomeObserver( pl )
 	end
 	
+	-- Dont ever respawn if in spectate mode!!
+	if ( pl:Team() == TEAM_SPECTATOR || ( GAMEMODE.TeamBased && pl:Team() == TEAM_UNASSIGNED ) ) then return end
+	
 	-- If we're in a round based game, player NEVER spawns in death think
 	if ( GAMEMODE.NoAutomaticSpawning ) then return end
+	
+	-- Also during a round based game, don't allow respawns between transitioning rounds
+	if ( !GAMEMODE:InRound() and GAMEMODE.RoundBased ) then return end
 	
 	-- The gamemode is holding the player from respawning.
 	-- Probably because they have to choose a class..
 	if ( !pl:CanRespawn() ) then return end
-
-	-- Don't respawn yet - wait for minimum time...
-	if ( GAMEMODE.MinimumDeathLength ) then 
 	
+	-- Don't respawn yet - wait for minimum time...
+	if ( GAMEMODE.MinimumDeathLength > 0 ) then 
+		
 		pl:SetNWFloat( "RespawnTime", pl.DeathTime + GAMEMODE.MinimumDeathLength )
 		
 		if ( timeDead < pl:GetRespawnTime() ) then
@@ -544,27 +545,18 @@ function GM:PlayerDeathThink( pl )
 		end
 		
 	end
-
+	
 	-- Force respawn
 	if ( pl:GetRespawnTime() != 0 && GAMEMODE.MaximumDeathLength != 0 && timeDead > GAMEMODE.MaximumDeathLength ) then
 		pl:Spawn()
 		return
 	end
-
+	
 	-- We're between min and max death length, player can press a key to spawn.
-	if ( pl:KeyPressed( IN_ATTACK ) || pl:KeyPressed( IN_ATTACK2 ) || pl:KeyPressed( IN_JUMP ) ) then
+	if ( pl:KeyPressed( IN_ATTACK ) || pl:KeyPressed( IN_ATTACK2 ) ) then
 		pl:Spawn()
+		return
 	end
-	
-end
-
-function GM:GetFallDamage( ply, flFallSpeed )
-	
-	if ( GAMEMODE.RealisticFallDamage ) then
-		return flFallSpeed / 8
-	end
-	
-	return 10
 	
 end
 
@@ -576,34 +568,32 @@ function GM:PostPlayerDeath( ply )
 	
 	if ( ply:GetObserverMode() == OBS_MODE_NONE ) then
 		ply:Spectate( OBS_MODE_DEATHCAM )
-	end	
+	end
 	
-	ply:OnDeath()
-
+	player_manager.RunClass( ply, "Death" )
 end
 
 function GM:DoPlayerDeath( ply, attacker, dmginfo )
-
-	ply:CallClassFunction( "OnDeath", attacker, dmginfo )
+	
 	ply:CreateRagdoll()
 	ply:AddDeaths( 1 )
 	
 	if ( attacker:IsValid() && attacker:IsPlayer() ) then
-	
-		if ( attacker == ply ) then
 		
-			if ( GAMEMODE.TakeFragOnSuicide ) then
+		if ( attacker == ply ) then
 			
+			if ( GAMEMODE.TakeFragOnSuicide ) then
+				
 				attacker:AddFrags( -1 )
 				
 				if ( GAMEMODE.TeamBased && GAMEMODE.AddFragsToTeamScore ) then
 					team.AddScore( attacker:Team(), -1 )
 				end
-			
+				
 			end
 			
 		else
-		
+			
 			attacker:AddFrags( 1 )
 			
 			if ( GAMEMODE.TeamBased && GAMEMODE.AddFragsToTeamScore ) then
@@ -627,43 +617,42 @@ function GM:StartSpectating( ply )
 
 	if ( !GAMEMODE:PlayerCanJoinTeam( ply ) ) then return end
 	
-	ply:StripWeapons();
+	ply:StripWeapons()
+	ply:StripAmmo()
 	GAMEMODE:PlayerJoinTeam( ply, TEAM_SPECTATOR )
 	GAMEMODE:BecomeObserver( ply )
 
 end
 
-
 function GM:EndSpectating( ply )
-
+	
 	if ( !GAMEMODE:PlayerCanJoinTeam( ply ) ) then return end
-
+	
 	GAMEMODE:PlayerJoinTeam( ply, TEAM_UNASSIGNED )
 	
 	ply:KillSilent()
-
+	
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:PlayerRequestTeam()
 		Player wants to change team
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:PlayerRequestTeam( ply, teamid )
-
-	if ( !GAMEMODE.TeamBased && GAMEMODE.AllowSpectating ) then
 	
+	if ( !GAMEMODE.TeamBased && GAMEMODE.AllowSpectating ) then
+		
 		if ( teamid == TEAM_SPECTATOR ) then
 			GAMEMODE:StartSpectating( ply )
 		else
 			GAMEMODE:EndSpectating( ply )
 		end
-	
+		
 		return
-	
+		
 	end
 	
-	return self.BaseClass:PlayerRequestTeam( ply, teamid )
-
+	return BaseClass.PlayerRequestTeam(self, ply, teamid)
 end
 
 local function TimeLeft( ply )

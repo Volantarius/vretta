@@ -1,6 +1,6 @@
-/*
+--[[
 	Start of the death message stuff.
-*/
+]]
 
 include( 'vgui/vgui_gamenotice.lua' )
 
@@ -56,7 +56,7 @@ local function RecvPlayerKilled( length )
 	local attacker 	= "#" .. net.ReadString()
 
 	if ( !IsValid( victim ) ) then return end
-			
+	
 	GAMEMODE:AddDeathNotice( victim, inflictor, attacker )
 
 end
@@ -91,10 +91,10 @@ end
 net.Receive( "NPCKilledNPC", RecvNPCKilledNPC )
 
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:AddDeathNotice( Victim, Weapon, Attacker )
    Desc: Adds an death notice entry
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:AddDeathNotice( victim, inflictor, attacker )
 
 	if ( !IsValid( g_DeathNotify ) ) then return end
@@ -119,8 +119,8 @@ function GM:AddPlayerAction( ... )
 		pnl:AddText( v )
 	end
 	
-	// The rest of the arguments should be re-thought.
-	// Just create the notify and add them instead of trying to fit everything into this function!???
+	-- The rest of the arguments should be re-thought.
+	-- Just create the notify and add them instead of trying to fit everything into this function!???
 	
 	g_DeathNotify:AddItem( pnl )
 	

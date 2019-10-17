@@ -39,7 +39,7 @@ function PANEL:PerformLayout()
 	end
 	self:SetSize( x, tallest )
 	else
-		// todo.
+		-- todo.
 	end
 
 end
@@ -50,9 +50,9 @@ local PANEL = {}
 AccessorFunc( PANEL, "m_ValueFunction", 	"ValueFunction" )
 AccessorFunc( PANEL, "m_ColorFunction", 	"ColorFunction" )
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: Init
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function PANEL:Init()
 	
 end
@@ -78,9 +78,9 @@ derma.DefineControl( "DHudUpdater", "A HUD Element", PANEL, "DHudElement" )
 local PANEL = {}
 AccessorFunc( PANEL, "m_Function", 	"Function" )
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: Init
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function PANEL:Init()
 	HudBase.Init( self )
 end

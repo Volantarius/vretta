@@ -1,0 +1,4 @@
+#
+# This prevents aweful override issues
+#
+gamemodes\vretta\gamemode\player_class\player_default_vretta.lua

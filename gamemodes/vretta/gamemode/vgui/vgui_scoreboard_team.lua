@@ -44,7 +44,7 @@ local PANEL = {}
 function PANEL:Init()
 
 	self.Columns = {}
-
+	
 	self.List = vgui.Create( "DListView", self )
 	self.List:SetSortable( false )
 	self.List:DisableScrollbar()
@@ -89,7 +89,8 @@ function PANEL:PerformLayout()
 	self.List:StretchToParent( 0, self.Header:GetTall(), 0, 0 )
 	self.List:SetDataHeight( self.pMain:GetRowHeight() )
 	self.List:SetHeaderHeight( 16 )
-
+	self.List:SetHideHeaders( false ) --RIGHT HERE
+	
 end
 
 function PANEL:AddColumn( col )
@@ -153,7 +154,7 @@ function PANEL:UpdateColumn( i, col, pLine )
 	if ( !col.fncValue ) then return end
 	
 	pLine.UpdateTime[i] = pLine.UpdateTime[i] or 0
-	if ( col.UpdateRate == 0 && pLine.UpdateTime[i] != 0 ) then return end // 0 = only update once
+	if ( col.UpdateRate == 0 && pLine.UpdateTime[i] != 0 ) then return end -- 0 = only update once
 	if ( pLine.UpdateTime[i] > RealTime() ) then return end
 	
 	pLine.UpdateTime[i] = RealTime() + col.UpdateRate

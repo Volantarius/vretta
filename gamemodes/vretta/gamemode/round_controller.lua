@@ -16,15 +16,15 @@ end
 
 function GM:OnRoundResult( result, resulttext )
 
-	// The fact that result might not be a team 
-	// shouldn't matter when calling this..
+	-- The fact that result might not be a team 
+	-- shouldn't matter when calling this..
 	team.AddScore( result, 1 )
 
 end
 
 function GM:OnRoundWinner( ply, resulttext )
 
-	// Do whatever you want to do with the winner here (this is only called in Free For All gamemodes)...
+	-- Do whatever you want to do with the winner here (this is only called in Free For All gamemodes)...
 	ply:AddFrags( 1 )
 
 end
@@ -39,25 +39,34 @@ function GM:OnPreRoundStart( num )
 
 end
 
+--[[-------------------------------------------------------------------------
+	CanStartRound
+	
+	This checks for a condition before starting the round
+	return true to start the round
+	
+	An example would be checking for enough players in a team to start
+---------------------------------------------------------------------------]]
 function GM:CanStartRound( iNum )
 	return true
 end
 
+-- Start function called during initialization in init
 function GM:StartRoundBasedGame()
 	
 	GAMEMODE:PreRoundStart( 1 )
 	
 end
 
-// Number of rounds
+-- Number of rounds
 function GM:GetRoundLimit()
-	return GAMEMODE.RoundLimit;
+	return GAMEMODE.RoundLimit
 end
 
-// Has the round limit been reached?
+-- Has the round limit been reached?
 function GM:HasReachedRoundLimit( iNum )
 
-	local iRoundLimit = GAMEMODE:GetRoundLimit();
+	local iRoundLimit = GAMEMODE:GetRoundLimit()
 	
 	if( iRoundLimit > 0 && iNum > iRoundLimit ) then
 		return true
@@ -67,20 +76,20 @@ function GM:HasReachedRoundLimit( iNum )
 	
 end
 
-// This is for the timer-based game end. set this to return true if you want it to end mid-round
+-- This is for the timer-based game end. set this to return true if you want it to end mid-round
 function GM:CanEndRoundBasedGame()
 	return false
 end
 
-// You can add round time by calling this (takes time in seconds)
+-- You can add round time by calling this (takes time in seconds)
 function GM:AddRoundTime( fAddedTime )
 	
-	if( !GAMEMODE:InRound() ) then // don't add time if round is not in progress
+	if( !GAMEMODE:InRound() ) then -- don't add time if round is not in progress
 		return
 	end
 	
-	SetGlobalFloat( "RoundEndTime", GetGlobalFloat( "RoundEndTime", CurTime() ) + fAddedTime );
-	timer.Adjust( "RoundEndTimer", GetGlobalFloat( "RoundEndTime" ) - GetGlobalFloat( "RoundStartTime" ), 0, function() GAMEMODE:RoundTimerEnd() end );
+	SetGlobalFloat( "RoundEndTime", GetGlobalFloat( "RoundEndTime", CurTime() ) + fAddedTime )
+	timer.Adjust( "RoundEndTimer", GetGlobalFloat( "RoundEndTime" ) - GetGlobalFloat( "RoundStartTime" ), 0, function() GAMEMODE:RoundTimerEnd() end )
 	
 	net.Start( "RoundAddedTime" )
 		net.WriteFloat( fAddedTime )
@@ -88,29 +97,29 @@ function GM:AddRoundTime( fAddedTime )
 
 end
 
-// This gets the timer for a round (you can make round number dependant round lengths, or make it cvar controlled)
+-- This gets the timer for a round (you can make round number dependant round lengths, or make it cvar controlled)
 function GM:GetRoundTime( iRoundNumber )
-	return GAMEMODE.RoundLength;
+	return GAMEMODE.RoundLength
 end
 
-//
-// Internal, override OnPreRoundStart if you want to do stuff here
-//
+--
+-- Internal, override OnPreRoundStart if you want to do stuff here
+--
 function GM:PreRoundStart( iNum )
 
-	// Should the game end?
+	-- Should the game end?
 	if( CurTime() >= GAMEMODE.GetTimeLimit() || GAMEMODE:HasReachedRoundLimit( iNum ) ) then
-		GAMEMODE:EndOfGame( true );
-		return;
+		GAMEMODE:EndOfGame( true )
+		return
 	end
 	
 	if ( !GAMEMODE:CanStartRound( iNum ) ) then
 	
-		timer.Simple( 1, function() GAMEMODE:PreRoundStart( iNum ) end ) // In a second, check to see if we can start
-		return;
+		timer.Simple( 1, function() GAMEMODE:PreRoundStart( iNum ) end ) -- In a second, check to see if we can start
+		return
 		
 	end
-
+	
 	timer.Simple( GAMEMODE.RoundPreStartTime, function() GAMEMODE:RoundStart() end )
 	SetGlobalInt( "RoundNumber", iNum )
 	SetGlobalFloat( "RoundStartTime", CurTime() + GAMEMODE.RoundPreStartTime )
@@ -121,12 +130,12 @@ function GM:PreRoundStart( iNum )
 
 end
 
-//
-// Internal, override OnRoundStart if you want to do stuff here
-//
+--
+-- Internal, override OnRoundStart if you want to do stuff here
+--
 function GM:RoundStart()
 
-	local roundNum = GetGlobalInt( "RoundNumber" );
+	local roundNum = GetGlobalInt( "RoundNumber" )
 	local roundDuration = GAMEMODE:GetRoundTime( roundNum )
 	
 	GAMEMODE:OnRoundStart( roundNum )
@@ -134,38 +143,38 @@ function GM:RoundStart()
 	timer.Create( "RoundEndTimer", roundDuration, 0, function() GAMEMODE:RoundTimerEnd() end )
 	timer.Create( "CheckRoundEnd", 1, 0, function() GAMEMODE:CheckRoundEnd() end )
 	
-	SetGlobalFloat( "RoundEndTime", CurTime() + roundDuration );
+	SetGlobalFloat( "RoundEndTime", CurTime() + roundDuration )
 	
 end
 
-//
-// Decide what text should show when a team/player wins
-//
+--
+-- Decide what text should show when a team/player wins
+--
 function GM:ProcessResultText( result, resulttext )
 
 	if ( resulttext == nil ) then resulttext = "" end
 	
-	//the result could either be a number or a player!
-	// for a free for all you could do... if type(result) == "Player" and IsValid( result ) then return result:Name().." is the winner" or whatever
+	--the result could either be a number or a player!
+	-- for a free for all you could do... if type(result) == "Player" and IsValid( result ) then return result:Name().." is the winner" or whatever
 	
 	return resulttext
 
 end
 
-//
-// Round Ended with Result
-//
+--
+-- Round Ended with Result
+--
 function GM:RoundEndWithResult( result, resulttext )
 
 	resulttext = GAMEMODE:ProcessResultText( result, resulttext )
 	
-	if type( result ) == "number" then // the result is a team ID
+	if type( result ) == "number" then -- the result is a team ID
 
 		GAMEMODE:SetRoundResult( result, resulttext )
 		GAMEMODE:RoundEnd()
 		GAMEMODE:OnRoundResult( result, resulttext )
 		
-	else // the result is a player
+	else -- the result is a player
 	
 		GAMEMODE:SetRoundWinner( result, resulttext )
 		GAMEMODE:RoundEnd()
@@ -175,13 +184,13 @@ function GM:RoundEndWithResult( result, resulttext )
 	
 end
 
-//
-// Internal, override OnRoundEnd if you want to do stuff here
-//
+--
+-- Internal, override OnRoundEnd if you want to do stuff here
+--
 function GM:RoundEnd()
 
 	if ( !GAMEMODE:InRound() ) then 
-		// if someone uses RoundEnd incorrectly then do a trace.
+		-- if someone uses RoundEnd incorrectly then do a trace.
 		MsgN("WARNING: RoundEnd being called while gamemode not in round...")
 		debug.Trace()
 		return 
@@ -200,23 +209,27 @@ function GM:RoundEnd()
 end
 
 function GM:GetTeamAliveCounts()
-
 	local TeamCounter = {}
-
-	for k,v in pairs( player.GetAll() ) do
-		if ( v:Alive() && v:Team() > 0 && v:Team() < 1000 ) then
-			TeamCounter[ v:Team() ] = TeamCounter[ v:Team() ] or 0
-			TeamCounter[ v:Team() ] = TeamCounter[ v:Team() ] + 1
+	
+	for k,t in pairs( team.GetAllTeams() ) do
+		if ( k > 0 && k < 1000 ) then
+			
+			for kk,p in pairs( team.GetPlayers( k ) ) do
+				if ( p:Alive() ) then
+					TeamCounter[ k ] = TeamCounter[ k ] or 0
+					TeamCounter[ k ] = TeamCounter[ k ] + 1
+				end
+			end
+			
 		end
 	end
-
+	
 	return TeamCounter
-
 end
 
-//
-// For round based games that end when a team is dead
-//
+--
+-- For round based games that end when a team is dead
+--
 function GM:CheckPlayerDeathRoundEnd()
 
 	if ( !GAMEMODE.RoundBased ) then return end
@@ -249,15 +262,15 @@ end
 hook.Add( "PlayerDisconnected", "RoundCheck_PlayerDisconnect", function() timer.Simple( 0.2, function() GAMEMODE:CheckPlayerDeathRoundEnd() end ) end )
 hook.Add( "PostPlayerDeath", "RoundCheck_PostPlayerDeath", function() timer.Simple( 0.2, function() GAMEMODE:CheckPlayerDeathRoundEnd() end ) end )
 
-//
-// You should use this to check any round end conditions 
-//
+--
+-- You should use this to check any round end conditions 
+--
 function GM:CheckRoundEnd()
 
-	// Do checks.. 
+	-- Do checks.. 
 	
-	// if something then call GAMEMODE:RoundEndWithResult( TEAM_BLUE, "Team Blue Ate All The Mushrooms!" )
-	// OR for a free for all you could do something like... GAMEMODE:RoundEndWithResult( SomePlayer )
+	-- if something then call GAMEMODE:RoundEndWithResult( TEAM_BLUE, "Team Blue Ate All The Mushrooms!" )
+	-- OR for a free for all you could do something like... GAMEMODE:RoundEndWithResult( SomePlayer )
 
 end
 
@@ -271,9 +284,9 @@ function GM:CheckRoundEndInternal()
 
 end
 
-//
-// This is called when the round time ends.
-//
+--
+-- This is called when the round time ends.
+--
 function GM:RoundTimerEnd()
 
 	if ( !GAMEMODE:InRound() ) then return end
@@ -296,10 +309,10 @@ function GM:RoundTimerEnd()
 
 end
 
-//
-// This is called when time runs out and there is no winner chosen yet (free for all gamemodes only)
-// By default it chooses the player with the most frags but you can edit this to do what you need..
-//
+--
+-- This is called when time runs out and there is no winner chosen yet (free for all gamemodes only)
+-- By default it chooses the player with the most frags but you can edit this to do what you need..
+--
 function GM:SelectCurrentlyWinningPlayer()
 	
 	local winner

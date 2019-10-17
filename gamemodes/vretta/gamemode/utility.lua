@@ -1,7 +1,7 @@
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: UTIL_SpawnAllPlayers
    Desc: Respawn all non-spectators, providing they are allowed to spawn. 
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function UTIL_SpawnAllPlayers()
 
 	for k,v in pairs( player.GetAll() ) do
@@ -12,10 +12,10 @@ function UTIL_SpawnAllPlayers()
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: UTIL_StripAllPlayers
    Desc: Clears all weapons and ammo from all players.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function UTIL_StripAllPlayers()
 
 	for k,v in pairs( player.GetAll() ) do
@@ -27,10 +27,10 @@ function UTIL_StripAllPlayers()
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: UTIL_FreezeAllPlayers
    Desc: Freeze all non-spectators.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function UTIL_FreezeAllPlayers()
 
 	for k,v in pairs( player.GetAll() ) do
@@ -41,10 +41,10 @@ function UTIL_FreezeAllPlayers()
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: UTIL_UnFreezeAllPlayers
    Desc: Removes frozen flag from all players.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function UTIL_UnFreezeAllPlayers()
 
 	for k,v in pairs( player.GetAll() ) do

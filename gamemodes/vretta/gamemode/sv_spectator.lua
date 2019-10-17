@@ -1,33 +1,33 @@
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:GetValidSpectatorModes( Player ply )
    Desc: Gets a table of the allowed spectator modes (OBS_MODE_INEYE, etc)
 		 Player is the player object of the spectator
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:GetValidSpectatorModes( ply )
 
-	// Note: Override this and return valid modes per player/team
+	-- Note: Override this and return valid modes per player/team
 
 	return GAMEMODE.ValidSpectatorModes
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:GetValidSpectatorEntityNames( Player ply )
    Desc: Returns a table of entities that can be spectated (player etc)
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:GetValidSpectatorEntityNames( ply )
 
-	// Note: Override this and return valid entity names per player/team
+	-- Note: Override this and return valid entity names per player/team
 
 	return GAMEMODE.ValidSpectatorEntities
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:IsValidSpectator( Player ply )
    Desc: Is our player spectating - and valid?
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:IsValidSpectator( pl )
 
 	if ( !IsValid( pl ) ) then return false end
@@ -37,12 +37,12 @@ function GM:IsValidSpectator( pl )
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:IsValidSpectatorTarget( Player pl, Entity ent )
    Desc: Checks to make sure a spectated entity is valid.
 		 By default, you can change GM.CanOnlySpectate own team if you want to
 		 prevent players from spectating the other team.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:IsValidSpectatorTarget( pl, ent )
 
 	if ( !IsValid( ent ) ) then return false end
@@ -56,10 +56,10 @@ function GM:IsValidSpectatorTarget( pl, ent )
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:GetSpectatorTargets( Player pl )
    Desc: Returns a table of entities the player can spectate.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:GetSpectatorTargets( pl )
 
 	local t = {}
@@ -71,11 +71,11 @@ function GM:GetSpectatorTargets( pl )
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:FindRandomSpectatorTarget( Player pl )
    Desc: Finds a random player/ent we can spectate.
 		 This is called when a player is first put in spectate.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:FindRandomSpectatorTarget( pl )
 
 	local Targets = GAMEMODE:GetSpectatorTargets( pl )
@@ -83,11 +83,11 @@ function GM:FindRandomSpectatorTarget( pl )
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:FindNextSpectatorTarget( Player pl, Entity ent )
    Desc: Finds the next entity we can spectate.
 		 ent param is the current entity we are viewing.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:FindNextSpectatorTarget( pl, ent )
 
 	local Targets = GAMEMODE:GetSpectatorTargets( pl )
@@ -95,11 +95,11 @@ function GM:FindNextSpectatorTarget( pl, ent )
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:FindPrevSpectatorTarget( Player pl, Entity ent )
    Desc: Finds the previous entity we can spectate.
 		 ent param is the current entity we are viewing.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:FindPrevSpectatorTarget( pl, ent )
 
 	local Targets = GAMEMODE:GetSpectatorTargets( pl )
@@ -107,10 +107,10 @@ function GM:FindPrevSpectatorTarget( pl, ent )
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:StartEntitySpectate( Player pl )
    Desc: Called when we start spectating.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:StartEntitySpectate( pl )
 
 	local CurrentSpectateEntity = pl:GetObserverTarget()
@@ -128,10 +128,10 @@ function GM:StartEntitySpectate( pl )
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:NextEntitySpectate( Player pl )
    Desc: Called when we want to spec the next entity.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:NextEntitySpectate( pl )
 
 	local Target = pl:GetObserverTarget()
@@ -149,10 +149,10 @@ function GM:NextEntitySpectate( pl )
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:PrevEntitySpectate( Player pl )
    Desc: Called when we want to spec the previous entity.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:PrevEntitySpectate( pl )
 
 	local Target = pl:GetObserverTarget()
@@ -170,29 +170,29 @@ function GM:PrevEntitySpectate( pl )
 
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:ChangeObserverMode( Player pl, Number mode )
    Desc: Change the observer mode of a player.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:ChangeObserverMode( pl, mode )
-
+	
 	if ( pl:GetInfoNum( "cl_spec_mode", 0) != mode ) then
 		pl:ConCommand( "cl_spec_mode "..mode )
 	end
-
+	
 	if ( mode == OBS_MODE_IN_EYE || mode == OBS_MODE_CHASE ) then
 		GAMEMODE:StartEntitySpectate( pl, mode )
 	end
 	
 	pl:SpectateEntity( NULL )
 	pl:Spectate( mode )
-
+	
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Name: gamemode:BecomeObserver( Player pl )
    Desc: Called when we first become a spectator.
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function GM:BecomeObserver( pl )
 
 	local mode = pl:GetInfoNum( "cl_spec_mode", OBS_MODE_CHASE )

@@ -46,7 +46,7 @@ function PANEL:PerformLayout()
 	self.ControlCanvas:SetWide( 550 )
 	self.ControlCanvas:SetTall( cy - 30 )
 	self.ControlCanvas:SetPos( 0, 30 )
-	self.ControlCanvas:CenterHorizontal();
+	self.ControlCanvas:CenterHorizontal()
 	self.ControlCanvas:SetZPos( 0 )
 	
 	self.lblCountDown:SetFont( "FRETTA_MEDIUM_SHADOW" )
@@ -71,10 +71,10 @@ function PANEL:ChooseGamemode()
 	self.ctrlList:Clear()
 	
 	for name, gamemode in RandomPairs( g_PlayableGamemodes ) do
-	
+		
 		local lbl = vgui.Create( "DButton", self.ctrlList )
 			lbl:SetText( gamemode.label or name )
-		
+			
 			Derma_Hook( lbl, 	"Paint", 				"Paint", 	"GamemodeButton" )
 			Derma_Hook( lbl, 	"ApplySchemeSettings", 	"Scheme", 	"GamemodeButton" )
 			Derma_Hook( lbl, 	"PerformLayout", 		"Layout", 	"GamemodeButton" )
@@ -82,10 +82,10 @@ function PANEL:ChooseGamemode()
 			lbl:SetTall( 24 )
 			lbl:SetWide( 240 )
 			
-			local desc = tostring( gamemode.description );
-			if ( gamemode.author ) then desc = desc .. "\n\nBy: " .. tostring( gamemode.author ) end
+			local desc = tostring( gamemode.description )
+			if ( gamemode.author ) then desc = desc .. "\nBy: " .. tostring( gamemode.author ) end
 			if ( gamemode.authorurl ) then desc = desc .. "\n" .. tostring( gamemode.authorurl ) end
-
+			
 			lbl:SetTooltip( desc )
 		
 		lbl.WantName = name
@@ -122,16 +122,26 @@ function PANEL:ChooseMap( gamemode )
 		lbl.NumVotes = 0
 		lbl.DoClick = function() if GetGlobalFloat( "VoteEndTime", 0 ) - CurTime() <= 0 then return end RunConsoleCommand( "votemap", mapname ) end
 
-		--[[if file.Exists("maps/"..mapname..".png", "MOD") then
+		if file.Exists("maps/thumb/"..mapname..".png", "GAME") then
 			lbl:SetTall(72)
-
+			
 			local Image = vgui.Create("DImage", lbl)
-			Image:SetImage("../maps/"..mapname..".png")
+			-- Setting the image does not require a parent directory thing
+			Image:SetImage("maps/thumb/"..mapname..".png")
 			Image:SizeToContents()
 			Image:SetSize(math.min(Image:GetWide(), 64), math.min(Image:GetTall(), 64))
 			Image:AlignRight(4)
 			Image:CenterVertical()
-		end]]
+		else
+			lbl:SetTall(72)
+			
+			local Image = vgui.Create("DImage", lbl)
+			Image:SetImage("maps/thumb/noicon.png")
+			Image:SizeToContents()
+			Image:SetSize(math.min(Image:GetWide(), 64), math.min(Image:GetTall(), 64))
+			Image:AlignRight(4)
+			Image:CenterVertical()
+		end
 		
 		self.ctrlList:AddItem( lbl )
 	
@@ -218,8 +228,8 @@ function PANEL:Paint()
 	local CenterY = ScrH() / 2.0
 	local CenterX = ScrW() / 2.0
 	
-	surface.SetDrawColor( 0, 0, 0, 200 );
-	surface.DrawRect( 0, 0, ScrW(), ScrH() );
+	surface.SetDrawColor( 0, 0, 0, 200 )
+	surface.DrawRect( 0, 0, ScrW(), ScrH() )
 	
 end
 

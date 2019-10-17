@@ -1,13 +1,13 @@
 
 local PANEL = {}
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Init
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function PANEL:Init()
 
 	self:SetText( "" )
-	self.DoClick = function() RunConsoleCommand( "seensplash" ) self:Remove() end
+	self.DoClick = function() RunConsoleCommand( "seensplashlocal" ) RunConsoleCommand( "seensplash" ) self:Remove() end
 	self:SetSkin( GAMEMODE.HudSkin )
 
 	self.lblGamemodeName = vgui.Create( "DLabel", self )
@@ -37,9 +37,9 @@ function PANEL:Init()
 	
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    PerformLayout
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function PANEL:PerformLayout()
 
 	self:SetSize( ScrW(), ScrH() )
@@ -61,9 +61,9 @@ function PANEL:PerformLayout()
 	
 end
 
-/*---------------------------------------------------------
+--[[---------------------------------------------------------
    Paint
----------------------------------------------------------*/
+---------------------------------------------------------]]
 function PANEL:Paint()
 
 	Derma_DrawBackgroundBlur( self )
@@ -71,19 +71,19 @@ function PANEL:Paint()
 	local Fade = RealTime() - self.FadeInTime
 	if ( Fade < 3 ) then
 	
-		Fade = 1- (Fade / 3);
-		surface.SetDrawColor( 0,0, 0, Fade * 255 );
-		surface.DrawRect( 0, 0, self:GetWide(), self:GetTall() );
+		Fade = 1- (Fade / 3)
+		surface.SetDrawColor( 0,0, 0, Fade * 255 )
+		surface.DrawRect( 0, 0, self:GetWide(), self:GetTall() )
 	
 	end
 	
 	
 	local CenterY = ScrH() / 2.0
 	
-	surface.SetDrawColor( 0, 0, 0, 200 );
-	surface.DrawRect( 0, 0, self:GetWide(), CenterY - 180 );
+	surface.SetDrawColor( 0, 0, 0, 200 )
+	surface.DrawRect( 0, 0, self:GetWide(), CenterY - 180 )
 	
-	surface.DrawRect( 0, CenterY + 180, self:GetWide(), self:GetTall() - ( CenterY+ 180 ) );
+	surface.DrawRect( 0, CenterY + 180, self:GetWide(), self:GetTall() - ( CenterY+ 180 ) )
 	
 	GAMEMODE:PaintSplashScreen( self:GetWide(), self:GetTall() )
 
@@ -101,6 +101,6 @@ end
 
 function GM:PaintSplashScreen( w, h )
 
-	// Customised splashscreen render here ( The center bit! )
+	-- Customised splashscreen render here ( The center bit! )
 
 end

@@ -1,0 +1,20 @@
+"vretta"
+{
+	"base"				"base"
+	"title"				"Vretta Gamemode Base"
+	"menusystem"		"0"
+	//"workshopid"  "addme!"
+	
+	"author_name"		"TEAM GARRY"
+	"author_email"		""
+	"author_url"		"https://github.com/JetBoom/fretta13"
+}
+// CREDITS AND CONTACT
+// Original gamemode by garry. Conversion and updates by JetBoom.
+//
+// Any problems, e-mail me at williammoodhe@gmail.com
+//
+// Branched from: https://github.com/JetBoom/fretta13
+//
+// Originally named Fretta, but renamed to prevent conflicts!!
+// Additional changes and fixes by Volantarius
