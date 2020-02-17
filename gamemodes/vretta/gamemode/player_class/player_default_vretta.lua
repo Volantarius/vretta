@@ -4,31 +4,31 @@ AddCSLuaFile()
 
 local PLAYER = {}
 
-PLAYER.DisplayName				= "Vretta Default Class"
+PLAYER.DisplayName			= "Vretta Default Class"
 
-PLAYER.WalkSpeed					= 400		-- How fast to move when not running
-PLAYER.RunSpeed						= 600		-- How fast to move when running
+PLAYER.WalkSpeed			= 400		-- How fast to move when not running
+PLAYER.RunSpeed				= 600		-- How fast to move when running
 PLAYER.CrouchedWalkSpeed	= 0.3		-- Multiply move speed by this when crouching
 
-PLAYER.DuckSpeed					= 0.3		-- How fast to go from not ducking, to ducking
-PLAYER.UnDuckSpeed				= 0.3		-- How fast to go from ducking, to not ducking
+PLAYER.DuckSpeed			= 0.3		-- How fast to go from not ducking, to ducking
+PLAYER.UnDuckSpeed			= 0.3		-- How fast to go from ducking, to not ducking
 
-PLAYER.JumpPower					= 200		-- How powerful our jump should be
+PLAYER.JumpPower			= 200		-- How powerful our jump should be
 
 PLAYER.CanUseFlashlight		= true		-- Can we use the flashlight
 
-PLAYER.MaxHealth					= 100		-- Max health we can have
-PLAYER.StartHealth				= 100		-- How much health we start with
-PLAYER.StartArmor					= 0			-- How much armour we start with
+PLAYER.MaxHealth			= 100		-- Max health we can have
+PLAYER.StartHealth			= 100		-- How much health we start with
+PLAYER.StartArmor			= 0			-- How much armour we start with
 
 PLAYER.DropWeaponOnDie		= false		-- Do we drop our weapon when we die
 PLAYER.TeammateNoCollide	= true		-- Do we collide with teammates or run straight through them
-PLAYER.AvoidPlayers				= true		-- Automatically swerves around other players
+PLAYER.AvoidPlayers			= true		-- Automatically swerves around other players
 
-PLAYER.UseVMHands					= true		-- Uses viewmodel hands
+PLAYER.UseVMHands			= true		-- Uses viewmodel hands
 
 -- Fretta features!
-PLAYER.DrawTeamRing 			= true
+PLAYER.DrawTeamRing 		= true
 PLAYER.DisableFootsteps		= false
 
 function PLAYER:SetupDataTables()
@@ -73,9 +73,10 @@ end
 -- If it really is required and is shared, then use a hook instead
 
 -- Clientside ONLY
+-- add stuff here
 
 -- Serverside ONLY
-function PLAYER:Death() end
+-- add stuff here
 
 -- Shared
 function PLAYER:KeyPress( key ) end

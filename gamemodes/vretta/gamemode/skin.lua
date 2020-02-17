@@ -413,6 +413,34 @@ function SKIN:SchemeGamemodeButton( panel )
 
 end
 
+function SKIN:PaintMapButton( panel )
+
+	local w, h = panel:GetSize()
+	
+	local col = Color( 255, 255, 255, 10 )
+	
+	if ( panel:GetDisabled() ) then
+		col = Color( 0, 0, 0, 10 )
+	elseif ( panel.Depressed ) then
+		col = Color( 255, 255, 255, 50 )
+	elseif ( panel.Hovered ) then
+		col = Color( 255, 255, 255, 20 )
+	end
+	
+	if ( panel.bgColor != nil ) then col = panel.bgColor end
+
+	draw.RoundedBox( 4, 0, 0, w, h, col )
+
+end
+
+function SKIN:SchemeMapButton( panel )
+
+	panel:SetTextColor( color_white )
+	panel:SetFontInternal( "FRETTA_MEDIUM_SHADOW" )
+	panel:SetContentAlignment( 2 )--This is for the text, the image stays the same position
+
+end
+
 
 --[[---------------------------------------------------------
 	PanelButton

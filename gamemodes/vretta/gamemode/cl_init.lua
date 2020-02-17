@@ -94,10 +94,10 @@ function GM:DrawPlayerRing( pPlayer )
 	if not tr.HitWorld then
 		tr.HitPos = pPlayer:GetPos()
 	end
-
+	
 	local color = table.Copy( team.GetColor( pPlayer:Team() ) )
 	color.a = 40
-
+	
 	render.SetMaterial( CircleMat )
 	render.DrawQuadEasy( tr.HitPos + tr.HitNormal, tr.HitNormal, GAMEMODE.PlayerRingSize:GetInt(), GAMEMODE.PlayerRingSize:GetInt(), color )	
 	
@@ -105,33 +105,15 @@ end
 
 hook.Add( "PrePlayerDraw", "DrawPlayerRing", function( ply ) GAMEMODE:DrawPlayerRing( ply ) end ) 
 
-function GM:HUDShouldDraw( name )
-
-	--if GAMEMODE.ScoreboardVisible then return false end
-	
-	-- commented out until HUD elements are made
-	--for k, v in pairs{"CHudHealth", "CHudBattery", "CHudAmmo", "CHudSecondaryAmmo"} do
-	--	if name == v then return false end 
-  	--end 
-	
-	if name == "CHudDamageIndicator" and not LocalPlayer():Alive() then
-		return false
-	end
-	
-	return true
-	
-end
-
 function GM:OnSpawnMenuOpen()
 	RunConsoleCommand( "lastinv" ) -- Fretta is derived from base and has no spawn menu, so give it a use, make it lastinv.
 end
 
-
+-- This is to send the server to run a command
 function GM:PlayerBindPress( pl, bind, down )
 
 	-- Redirect binds to the spectate system
-	-- Player must be alive also lol
-	if ( !pl:Alive() && pl:IsObserver() && down ) then
+	if ( pl:IsObserver() && down ) then
 		
 		if ( bind == "+jump" ) then 	RunConsoleCommand( "spec_mode" )	end
 		if ( bind == "+attack" ) then	RunConsoleCommand( "spec_next" )	end
@@ -141,27 +123,6 @@ function GM:PlayerBindPress( pl, bind, down )
 	
 	return false	
 	
-end
-
---[[---------------------------------------------------------
-   Name: gamemode:GetTeamColor( ent )
----------------------------------------------------------]]
-function GM:GetTeamColor( ent )
-
-	if ( GAMEMODE.SelectColor && IsValid( ent ) ) then
-	
-		local clr = ent:GetNWString( "NameColor", -1 )
-		if ( clr && clr != -1 && clr != "" ) then
-			clr = list.Get( "PlayerColours" )[ clr ]
-			if ( clr ) then return clr end
-		end
-	
-	end
-
-	local team = TEAM_UNASSIGNED
-	if ( ent.Team and IsValid(ent) ) then team = ent:Team() end
-	return GAMEMODE:GetTeamNumColor( team )
-
 end
 
 function GM:TeamChangeNotification( ply, oldteam, newteam )

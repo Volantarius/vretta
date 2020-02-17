@@ -6,8 +6,6 @@ if (!meta) then return end
 -- This is the delay before you can respawn
 function meta:SetRespawnTime( num )
 	
-	--debug.Trace()
-	
 	self.m_iSpawnTime = num
 	
 	self:SetNWFloat( "SpawnTime", num )
@@ -48,19 +46,9 @@ function meta:EnableRespawn()
 end
 
 function meta:CanRespawn()
-	
 	return self:GetNWBool( "CanRespawn", false )
-	
 end
 
 function meta:IsObserver()
 	return ( self:GetObserverMode() > OBS_MODE_NONE )
-end
-
-function meta:UpdateNameColor()
-	
-	if ( GAMEMODE.SelectColor ) then
-		self:SetNWString( "NameColor", self:GetInfo( "cl_vretta_playercolor" ) )
-	end
-	
 end

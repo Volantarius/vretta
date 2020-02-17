@@ -248,19 +248,19 @@ end
    Paint
 ---------------------------------------------------------]]
 function PANEL:Paint()
-
-	Derma_DrawBackgroundBlur( self, self.OpenTime )
-		
-	local CenterY = ScrH() / 2.0
-	local CenterX = ScrW() / 2.0
+	local override = GAMEMODE:PaintSplashScreen( self:GetWide(), self:GetTall(), true )
 	
-	surface.SetDrawColor( 0, 0, 0, 200 )
-	surface.DrawRect( 0, CenterY - CENTER_HEIGHT, ScrW(), CENTER_HEIGHT * 2 )
-	surface.DrawRect( 0, CenterY - CENTER_HEIGHT - 4, ScrW(), 2 )
-	surface.DrawRect( 0, CenterY + CENTER_HEIGHT + 2, ScrW(), 2 )
-
-	GAMEMODE:PaintSplashScreen( self:GetWide(), self:GetTall() )
-
+	if ( !override ) then
+		Derma_DrawBackgroundBlur( self, self.OpenTime )
+			
+		local CenterY = ScrH() / 2.0
+		local CenterX = ScrW() / 2.0
+		
+		surface.SetDrawColor( 0, 0, 0, 200 )
+		surface.DrawRect( 0, CenterY - CENTER_HEIGHT, ScrW(), CENTER_HEIGHT * 2 )
+		surface.DrawRect( 0, CenterY - CENTER_HEIGHT - 4, ScrW(), 2 )
+		surface.DrawRect( 0, CenterY + CENTER_HEIGHT + 2, ScrW(), 2 )
+	end
 end
 
 vgui_Splash = vgui.RegisterTable( PANEL, "DPanel" )

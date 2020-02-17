@@ -55,6 +55,7 @@ GM.RoundEndsWhenOneTeamAlive = true	-- CS Style rules
 
 GM.EnableFreezeCam = false			-- TF2 Style Freezecam
 GM.DeathLingerTime = 4				-- The time between you dying and it going into spectator mode, 0 disables
+GM.DeathLingerTimeMax = 10 			-- The maximum time you can spectate while dead, 0 will disable
 
 GM.SelectModel = true               -- Can players use the playermodel picker in the F1 menu?
 GM.SelectColor = false				-- Can players modify the colour of their name? (ie.. no teams)
@@ -78,11 +79,11 @@ GM.PrintTeamChanges = true 			-- Show that a player has changed their team (ie..
 GM.RealisticFallDamage = false		-- Set to true if you want realistic fall damage instead of the fix 10 damage.
 GM.PlayerDeathSounds = true 		-- Play the default death sounds, alternatively override with custom ones
 
-GM.PlayerPickupItems = CreateConVar( "fretta_gm_pickupitems", "0", { FCVAR_REPLICATED }, "Allow players to pickup items with USE key" )
+GM.PlayerPickupItems = CreateConVar( "fretta_gm_pickupitems", "0", {FCVAR_NOTIFY, FCVAR_REPLICATED}, "Allow players to pickup items with USE key" )
 
-GM.EnablePhysgun = CreateConVar( "fretta_gm_physgun_enable", "1", { FCVAR_REPLICATED }, "Allow the physics gun to pick up anything at all" )
-GM.LimitedPhysgun = CreateConVar( "fretta_gm_physgun_limited", "1", { FCVAR_REPLICATED }, "Set the physics gun to only pick up valid objects (Like sandbox mode)" )
-GM.PhysgunFreeze = CreateConVar( "fretta_gm_physgun_freeze", "0", { FCVAR_REPLICATED }, "Allow the physics gun to freeze objects" )
+GM.EnablePhysgun = CreateConVar( "fretta_gm_physgun_enable", "1", {FCVAR_NOTIFY, FCVAR_REPLICATED}, "Allow the physics gun to pick up anything at all" )
+GM.LimitedPhysgun = CreateConVar( "fretta_gm_physgun_limited", "1", {FCVAR_NOTIFY, FCVAR_REPLICATED}, "Set the physics gun to only pick up valid objects (Like sandbox mode)" )
+GM.PhysgunFreeze = CreateConVar( "fretta_gm_physgun_freeze", "0", {FCVAR_NOTIFY, FCVAR_REPLICATED}, "Allow the physics gun to freeze objects" )
 
 TEAM_GREEN 		= 1
 TEAM_ORANGE 	= 2
@@ -170,6 +171,79 @@ function GM:PlayerNoClip( pl, on )
 	
 	-- Allow noclip if we're in single player or have cheats enabled
 	return (( GAMEMODE.PlayerCanNoClip || game.SinglePlayer() || GetConVar( "sv_cheats" ):GetBool() ) && ( IsValid(pl) && pl:Alive() ))
+end
+
+--[[---------------------------------------------------------
+   Name: gamemode:GravGunPunt( )
+   Desc: We're about to punt an entity (primary fire).
+		 Return true if we're allowed to.
+	SANDBOX RIP
+-----------------------------------------------------------]]
+function GM:GravGunPunt( ply, ent )
+
+	if ( ent:IsValid() && ent.GravGunPunt ) then
+		return ent:GravGunPunt( ply )
+	end
+
+	return BaseClass.GravGunPunt( self, ply, ent )
+	
+end
+
+--[[---------------------------------------------------------
+   Name: gamemode:GravGunPickupAllowed( )
+   Desc: Return true if we're allowed to pickup entity
+   SANDBOX RIP
+-----------------------------------------------------------]]
+function GM:GravGunPickupAllowed( ply, ent )
+
+	if ( ent:IsValid() && ent.GravGunPickupAllowed ) then
+		return ent:GravGunPickupAllowed( ply )
+	end
+
+	return BaseClass.GravGunPickupAllowed( self, ply, ent )
+	
+end
+
+--[[---------------------------------------------------------
+   Name: gamemode:PhysgunPickup( )
+   Desc: Return true if player can pickup entity
+   SANDBOX RIP
+-----------------------------------------------------------]]
+function GM:PhysgunPickup( ply, ent )
+	
+	-- Fretta disable physgun
+	if ( !GAMEMODE.EnablePhysgun:GetBool() ) then return false end
+	
+	if ( ent:IsValid() && ent.PhysgunPickup ) then
+		return ent:PhysgunPickup( ply )
+	end
+	
+	-- Some entities specifically forbid physgun interaction
+	if ( ent.PhysgunDisabled ) then return false end
+	
+	local EntClass = ent:GetClass()
+	
+	-- Never pick up players
+	if ( EntClass == "player" ) then return false end
+	
+	if ( GAMEMODE.LimitedPhysgun:GetBool() ) then
+		
+		if ( string.find( EntClass, "prop_dynamic" ) ) then return false end
+		if ( string.find( EntClass, "prop_door" ) ) then return false end
+		
+		-- Don't move physboxes if the mapper logic says no
+		if ( EntClass == "func_physbox" && ent:HasSpawnFlags( SF_PHYSBOX_MOTIONDISABLED ) ) then return false end
+		
+		-- If the physics object is frozen by the mapper, don't allow us to move it.
+		if ( string.find( EntClass, "prop_" ) && ( ent:HasSpawnFlags( SF_PHYSPROP_MOTIONDISABLED ) || ent:HasSpawnFlags( SF_PHYSPROP_PREVENT_PICKUP ) ) ) then return false end
+		
+		-- Allow physboxes, but get rid of all other func_'s (ladder etc)
+		if ( EntClass != "func_physbox" && string.find( EntClass, "func_" ) ) then return false end
+
+	
+	end
+	
+	return true
 	
 end
 

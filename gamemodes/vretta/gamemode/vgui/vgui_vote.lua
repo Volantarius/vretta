@@ -38,13 +38,14 @@ end
 function PANEL:PerformLayout()
 	
 	local cx, cy = chat.GetChatBoxPos()
+	local cw, ch = chat.GetChatBoxSize()
 	
 	self:SetPos( 0, 0 )
 	self:SetSize( ScrW(), ScrH() )
 	
 	self.ControlCanvas:StretchToParent( 0, 0, 0, 0 )
-	self.ControlCanvas:SetWide( 550 )
-	self.ControlCanvas:SetTall( cy - 30 )
+	self.ControlCanvas:SetWide( ( math.Round((ScrW() / 256) - 0.5) * 256 ) + 17 )
+	self.ControlCanvas:SetTall( cy - 30 + (ch * 0.5) )
 	self.ControlCanvas:SetPos( 0, 30 )
 	self.ControlCanvas:CenterHorizontal()
 	self.ControlCanvas:SetZPos( 0 )
@@ -111,37 +112,30 @@ function PANEL:ChooseMap( gamemode )
 		local lbl = vgui.Create( "DButton", self.ctrlList )
 			lbl:SetText( mapname )
 			
-			Derma_Hook( lbl, 	"Paint", 				"Paint", 	"GamemodeButton" )
-			Derma_Hook( lbl, 	"ApplySchemeSettings", 	"Scheme", 	"GamemodeButton" )
-			Derma_Hook( lbl, 	"PerformLayout", 		"Layout", 	"GamemodeButton" )
+			Derma_Hook( lbl, 	"Paint", 				"Paint", 	"MapButton" )
+			Derma_Hook( lbl, 	"ApplySchemeSettings", 	"Scheme", 	"MapButton" )
+			Derma_Hook( lbl, 	"PerformLayout", 		"Layout", 	"MapButton" )
 			
-			lbl:SetTall( 24 )
-			lbl:SetWide( 240 )
+			lbl:SetTall( 154 )
+			lbl:SetWide( 256 )
 			
 		lbl.WantName = mapname
 		lbl.NumVotes = 0
 		lbl.DoClick = function() if GetGlobalFloat( "VoteEndTime", 0 ) - CurTime() <= 0 then return end RunConsoleCommand( "votemap", mapname ) end
-
+		
+		-- IMAGES! yay
+		local Image = vgui.Create("DImage", lbl)
+		
 		if file.Exists("maps/thumb/"..mapname..".png", "GAME") then
-			lbl:SetTall(72)
-			
-			local Image = vgui.Create("DImage", lbl)
 			-- Setting the image does not require a parent directory thing
 			Image:SetImage("maps/thumb/"..mapname..".png")
-			Image:SizeToContents()
-			Image:SetSize(math.min(Image:GetWide(), 64), math.min(Image:GetTall(), 64))
-			Image:AlignRight(4)
-			Image:CenterVertical()
 		else
-			lbl:SetTall(72)
-			
-			local Image = vgui.Create("DImage", lbl)
 			Image:SetImage("maps/thumb/noicon.png")
-			Image:SizeToContents()
-			Image:SetSize(math.min(Image:GetWide(), 64), math.min(Image:GetTall(), 64))
-			Image:AlignRight(4)
-			Image:CenterVertical()
 		end
+		
+		Image:SizeToContents()
+		Image:SetSize(math.min(Image:GetWide(), 128), math.min(Image:GetTall(), 128))
+		Image:SetPos( (lbl:GetWide() * 0.5) - 64, 4 )
 		
 		self.ctrlList:AddItem( lbl )
 	

@@ -78,13 +78,12 @@ for _, gm in ipairs( engine.GetGamemodes() ) do
 			g_PlayableGamemodes[ gm.name ].maps = {}
 			
 			if ( info.fretta_maps ) then
-				for _, mapname in pairs( AllMaps ) do
+				for _, mapname in ipairs( AllMaps ) do
 					mapname = string.lower(mapname)
 					
-					for _, p in pairs( info.fretta_maps ) do
-						--( string.sub( mapname, 1, #p ) == p )
-						
-						if ( string.match( mapname, p, 1 ) != nil ) then
+					for _, p in ipairs( info.fretta_maps ) do
+						-- Find the maps using FIND, seems to easier to setup patterns
+						if ( string.find( mapname, p ) != nil ) then
 							table.insert( g_PlayableGamemodes[ gm.name ].maps, mapname )
 						end
 					end
@@ -371,13 +370,13 @@ function GM:ChangeGamemode()
 	
 	-- Restore defaults when switching gamemodes
 	-- Make sure these are up to date from GMOD
-	RunConsoleCommand("sv_stopspeed", "10")
+	--[[RunConsoleCommand("sv_stopspeed", "10")
 	RunConsoleCommand("sv_friction", "8")
 	RunConsoleCommand("sv_accelerate", "10")
 	RunConsoleCommand("sv_airaccelerate", "10")
 	RunConsoleCommand("sv_gravity", "600")
 	RunConsoleCommand("sv_sticktoground", "1")
-	RunConsoleCommand("mp_falldamage", "0")
+	RunConsoleCommand("mp_falldamage", "0")]]
 	
 	RunConsoleCommand( "gamemode", gm )
 	RunConsoleCommand( "changelevel", mp )

@@ -191,7 +191,7 @@ function GM:RoundEnd()
 
 	if ( !GAMEMODE:InRound() ) then 
 		-- if someone uses RoundEnd incorrectly then do a trace.
-		MsgN("WARNING: RoundEnd being called while gamemode not in round...")
+		ErrorNoHalt("WARNING: RoundEnd being called while gamemode not in round...")
 		debug.Trace()
 		return 
 	end

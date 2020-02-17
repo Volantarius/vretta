@@ -26,7 +26,7 @@ function PANEL:AddEntityText( txt )
 	if ( type( txt ) == "string" ) then return false end
 	
 	if ( type( txt ) == "Player" ) then 
-	
+		
 		self:AddText( txt:Nick(), GAMEMODE:GetTeamColor( txt ) )
 		if ( txt == LocalPlayer() ) then self.m_bHighlight = true end
 		

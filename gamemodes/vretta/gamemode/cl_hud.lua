@@ -104,20 +104,29 @@ function GM:UpdateHUD_RoundResult( RoundResult, Alive )
 
 end
 
+-- Made to use already existing information to make a little nicer!
 function GM:UpdateHUD_Observer( bWaitingToSpawn, InRound, ObserveMode, ObserveTarget )
-	
 	local lbl = nil
 	local txt = nil
 	local col = Color( 255, 255, 255 )
 	
-	if ( IsValid( ObserveTarget ) && ObserveTarget:IsPlayer() && ObserveTarget != LocalPlayer() && ObserveMode != OBS_MODE_ROAMING ) then
-		lbl = "SPECTATING"
-		txt = ObserveTarget:Nick()
-		col = team.GetColor( ObserveTarget:Team() )
-	end
-	
-	if ( ObserveMode == OBS_MODE_DEATHCAM || ObserveMode == OBS_MODE_FREEZECAM ) then
-		txt = "You died!" -- were killed by?
+	if ( ObserveMode == OBS_MODE_IN_EYE || ObserveMode == OBS_MODE_CHASE ) then
+		if ( IsValid( ObserveTarget ) && ObserveTarget:IsPlayer() && ObserveTarget != LocalPlayer() ) then
+			--lbl = "SPECTATING"
+			txt = ObserveTarget:Nick() .. " - " .. ObserveTarget:Health() .. "%"
+			col = team.GetColor( ObserveTarget:Team() )
+		end
+	elseif ( ObserveMode == OBS_MODE_DEATHCAM || ObserveMode == OBS_MODE_FREEZECAM ) then
+		if ( IsValid( ObserveTarget ) && ObserveTarget:IsPlayer() ) then
+			if ( ObserveTarget == LocalPlayer() ) then
+				txt = "You killed yourself!"
+			else
+				lbl = "KILLED BY"
+				txt = ObserveTarget:Nick()
+			end
+		end
+	elseif ( !IsValid( ObserveTarget ) && ObserveMode == OBS_MODE_ROAMING ) then
+		txt = "SPECTATING"
 	end
 	
 	if ( txt ) then
@@ -128,10 +137,8 @@ function GM:UpdateHUD_Observer( bWaitingToSpawn, InRound, ObserveMode, ObserveTa
 		
 		GAMEMODE:AddHUDItem( txtLabel, 2 )		
 	end
-
 	
 	GAMEMODE:UpdateHUD_Dead( bWaitingToSpawn, InRound )
-
 end
 
 function GM:UpdateHUD_Dead( bWaitingToSpawn, InRound )

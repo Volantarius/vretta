@@ -44,7 +44,7 @@ end
 		 prevent players from spectating the other team.
 ---------------------------------------------------------]]
 function GM:IsValidSpectatorTarget( pl, ent )
-
+	
 	if ( !IsValid( ent ) ) then return false end
 	if ( ent == pl ) then return false end
 	if ( !table.HasValue( GAMEMODE:GetValidSpectatorEntityNames( pl ), ent:GetClass() ) ) then return false end
@@ -53,7 +53,6 @@ function GM:IsValidSpectatorTarget( pl, ent )
 	if ( pl:Team() != TEAM_SPECTATOR && ent:IsPlayer() && GAMEMODE.CanOnlySpectateOwnTeam && pl:Team() != ent:Team() ) then return false end
 	
 	return true
-
 end
 
 --[[---------------------------------------------------------
@@ -121,9 +120,9 @@ function GM:StartEntitySpectate( pl )
 			pl:SpectateEntity( CurrentSpectateEntity )
 			return
 		end
-	
+		
 		CurrentSpectateEntity = GAMEMODE:FindRandomSpectatorTarget( pl )
-	
+		
 	end
 
 end
@@ -176,7 +175,7 @@ end
 ---------------------------------------------------------]]
 function GM:ChangeObserverMode( pl, mode )
 	
-	if ( pl:GetInfoNum( "cl_spec_mode", 0) != mode ) then
+	if ( pl:GetInfoNum( "cl_spec_mode", 0 ) != mode ) then
 		pl:ConCommand( "cl_spec_mode "..mode )
 	end
 	
@@ -184,8 +183,8 @@ function GM:ChangeObserverMode( pl, mode )
 		GAMEMODE:StartEntitySpectate( pl, mode )
 	end
 	
-	pl:SpectateEntity( NULL )
 	pl:Spectate( mode )
+	pl:SpectateEntity( nil )
 	
 end
 
@@ -194,7 +193,7 @@ end
    Desc: Called when we first become a spectator.
 ---------------------------------------------------------]]
 function GM:BecomeObserver( pl )
-
+	
 	local mode = pl:GetInfoNum( "cl_spec_mode", OBS_MODE_CHASE )
 	
 	if ( !table.HasValue( GAMEMODE:GetValidSpectatorModes( pl ), mode ) ) then 
@@ -206,14 +205,14 @@ function GM:BecomeObserver( pl )
 end
 
 local function spec_mode( pl, cmd, args )
-
+	
 	if ( !GAMEMODE:IsValidSpectator( pl ) ) then return end
 	
 	local mode = pl:GetObserverMode()
 	local nextmode = table.FindNext( GAMEMODE:GetValidSpectatorModes( pl ), mode )
 	
 	GAMEMODE:ChangeObserverMode( pl, nextmode )
-
+	
 end
 
 concommand.Add( "spec_mode",  spec_mode )

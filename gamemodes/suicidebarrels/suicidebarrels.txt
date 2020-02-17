@@ -1,0 +1,29 @@
+"suicidebarrels"
+{
+	"title"		"Suicide Barrels"
+	"name"		"Suicide Barrels"
+	"version"	"1"
+	"menusystem" "1"
+	//"workshopid"  "ADDME"
+	
+	"author_name"	"Otoris"
+	"author_email"	""
+	"author_url"	""
+	
+	"icon"		""
+	"info"		""
+	"hide"		"0"
+	
+	"fretta_maps"
+	{
+		"1"	"sb_aztekv2$"
+		"2"	"sb_cookies_barrelmania$"
+		"3"	"sb_hexagons1$"
+		"4"	"sb_killingrooms2$"
+		"5"	"sb_maze$"
+		"6"	"sb_pyramid$"
+	}
+	
+	"selectable"	"1"
+	"description"	"How long can you survive the Barrel Apocalypse?"
+}

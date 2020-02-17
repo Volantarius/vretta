@@ -3,7 +3,7 @@
 	"base"				"base"
 	"title"				"Vretta Gamemode Base"
 	"menusystem"		"0"
-	//"workshopid"  "addme!"
+	//"workshopid"  "ADDME"
 	
 	"author_name"		"TEAM GARRY"
 	"author_email"		""

@@ -69,21 +69,17 @@ end
    Name: gamemode:PlayerInitialSpawn( Player ply )
    Desc: Our very first spawn in the game.
 ---------------------------------------------------------]]
-function GM:PlayerInitialSpawn( pl )
+function GM:PlayerInitialSpawn( pl, transition )
 	pl:SetTeam( TEAM_UNASSIGNED )
-	pl:SetNWBool( "FirstSpawn", true )
-	
-	pl:UpdateNameColor()
+	pl:SetNWBool( "FirstSpawn", true )--TEST
 	
 	GAMEMODE:CheckPlayerReconnected( pl )
 end
 
 function GM:CheckPlayerReconnected( pl )
-	
 	if table.HasValue( GAMEMODE.ReconnectedPlayers, pl:UniqueID() ) then
 		GAMEMODE:PlayerReconnected( pl )
 	end
-	
 end
 
 --[[---------------------------------------------------------
@@ -91,17 +87,14 @@ end
    Desc: Called if the player has appeared to have reconnected.
 ---------------------------------------------------------]]
 function GM:PlayerReconnected( pl )
-
 	-- Use this hook to do stuff when a player rejoins and has been in the server previously
-
+	-- I guess for VIP things?
 end
 
 function GM:PlayerDisconnected( pl )
-	
 	table.insert( GAMEMODE.ReconnectedPlayers, pl:UniqueID() )
 	
 	BaseClass.PlayerDisconnected(self, pl)
-	
 end  
 
 function GM:ShowHelp( pl )
@@ -110,46 +103,30 @@ function GM:ShowHelp( pl )
 	
 end
 
-function GM:PlayerSpawn( pl ) 
-	
-	pl:UpdateNameColor()
-	
-	-- The player never spawns straight into the game in Fretta
-	-- They spawn as a spectator first (during the splash screen and team picking screens)
+function GM:PlayerSpawn( pl, transition ) 
+	if ( transition ) then return end
 	
 	if ( pl:GetNWBool( "FirstSpawn", true ) ) then
-		
 		pl:SetNWBool( "FirstSpawn", false )
 		
-		if ( pl:IsBot() ) then
-			
-			GAMEMODE:AutoTeam( pl )
-			
-			-- The bot doesn't send back the 'seen splash' command, so fake it.
-			-- Specifically in team based, we spawn the players at the beginning so we dont need to spawn them now
-			if ( !GAMEMODE.TeamBased && !GAMEMODE.NoAutomaticSpawning ) then
-				pl:Spawn()
-			end
-			
-		else
-			
-			-- Set the player to spectator and yeah...
-			-- This seems to be called before the splashscreen thing :()
-			
-			pl:SetTeam( TEAM_SPECTATOR )
-			pl:Spectate( OBS_MODE_ROAMING )
-			GAMEMODE:BecomeObserver( pl )
-			
-		end
+		pl:SetTeam( TEAM_SPECTATOR )
 		
-		return
+		pl:Spectate( OBS_MODE_ROAMING )
 		
+		pl:SetNWBool( "FirstSpec", true )--TEST
 	end
 	
-	-- Dont spawn instead go into spectator mode
-	-- Also if team based don't allow unassigned player spawns
-	if ( pl:Team() == TEAM_SPECTATOR || ( GAMEMODE.TeamBased && pl:Team() == TEAM_UNASSIGNED) ) then
-		GAMEMODE:BecomeObserver( pl )
+	if ( pl:Team() == TEAM_SPECTATOR || ( GAMEMODE.TeamBased && pl:Team() == TEAM_UNASSIGNED ) ) then
+		
+		if ( pl:GetNWBool( "FirstSpec", false ) ) then
+			-- We want to use the gamemode's spectator spawn position if possible!
+			pl:SetNWBool( "FirstSpec", false )
+			
+			pl:Spectate( OBS_MODE_ROAMING )--Avoid changing client spectator convar
+		else
+			GAMEMODE:BecomeObserver( pl )--This will call player's spectator convar
+		end
+		
 		return
 	end
 	
@@ -178,13 +155,13 @@ function GM:PlayerSpawn( pl )
 	player_manager.OnPlayerSpawn( pl )
 	player_manager.RunClass( pl, "Spawn" )
 	
-	-- Set player model
 	hook.Call( "PlayerSetModel", GAMEMODE, pl )
-	-- Set the player model before setting up the hand models
+	
 	pl:SetupHands()
 	
-	-- Call item loadout function
-	hook.Call( "PlayerLoadout", GAMEMODE, pl )
+	if ( not transition ) then
+		hook.Call( "PlayerLoadout", GAMEMODE, pl )
+	end
 end
 
 
@@ -228,12 +205,9 @@ end
 concommand.Add( "changeclass", function( pl, cmd, args ) hook.Call( "PlayerRequestClass", GAMEMODE, pl, tonumber(args[1]) ) end )
 
 local function SeenSplash( ply )
-
+	
 	if ( ply.m_bSeenSplashScreen ) then return end
 	ply.m_bSeenSplashScreen = true
-	
-	-- Kill the player preventing them from spectating in a weird player class
-	ply:KillSilent()
 	
 end
 
@@ -253,7 +227,7 @@ function GM:PlayerJoinTeam( ply, teamid )
 	ply:SetNWInt( "OldTeam", iOldTeam )
 	
 	if ( ply:Alive() ) then
-		if ( iOldTeam == TEAM_SPECTATOR || (iOldTeam == TEAM_UNASSIGNED && GAMEMODE.TeamBased) ) then
+		if ( iOldTeam == TEAM_SPECTATOR || iOldTeam == TEAM_UNASSIGNED ) then
 			ply:KillSilent()
 		else
 			ply:Kill()
@@ -307,7 +281,7 @@ function GM:PlayerJoinTeam( ply, teamid )
 		player_manager.ClearPlayerClass( ply )
 	end
 	
-	gamemode.Call("OnPlayerChangedTeam", ply, iOldTeam, teamid )
+	GAMEMODE:OnPlayerChangedTeam( ply, iOldTeam, teamid )
 end
 
 function GM:PlayerJoinClass( ply, classname, teamid )
@@ -334,19 +308,13 @@ end
    Desc: Are we allowed to join a team? Return true if so.
 ---------------------------------------------------------]]
 function GM:PlayerCanJoinTeam( ply, teamid )
-	
-	if ( SERVER && !BaseClass.PlayerCanJoinTeam( self, ply, teamid ) ) then 
-		return false 
-	end
-	
 	if ( GAMEMODE:TeamHasEnoughPlayers( teamid ) ) then
 		ply:ChatPrint( "That team is full!" )
 		ply:SendLua("GAMEMODE:ShowTeam()")
 		return false
 	end
 	
-	return true
-	
+	return BaseClass.PlayerCanJoinTeam( self, ply, teamid )
 end
 
 function GM:OnPlayerChangedTeam( ply, oldteam, newteam )
@@ -358,14 +326,12 @@ function GM:OnPlayerChangedTeam( ply, oldteam, newteam )
 		ply:StripWeapons()
 		ply:StripAmmo()
 		GAMEMODE:BecomeObserver( ply )
-		
-		--ply:ConCommand( "cl_spec_mode "..OBS_MODE_CHASE )
-		--ply:Spectate( OBS_MODE_CHASE ) --Default add auto player spectate
+		ply:Freeze( false ) -- Just in case
 		
 	elseif ( oldteam == TEAM_SPECTATOR ) then
 		
 		-- If we're changing from spectator, join the game
-		if ( !GAMEMODE.NoAutomaticSpawning ) then
+		if ( !GAMEMODE.NoAutomaticSpawning && newteam ~= TEAM_CONNECTING && (GAMEMODE.TeamBased && newteam ~= TEAM_UNASSIGNED) ) then
 			ply:Spawn()
 		end
 		
@@ -394,6 +360,199 @@ function GM:OnPlayerChangedTeam( ply, oldteam, newteam )
  	end
  	
 end
+
+function GM:PlayerShouldTakeDamage( ply, attacker )
+
+	if ( GAMEMODE.NoPlayerSelfDamage && IsValid( attacker ) && ply == attacker ) then return false end
+	if ( GAMEMODE.NoPlayerDamage ) then return false end
+	
+	if ( GAMEMODE.NoPlayerTeamDamage && IsValid( attacker ) ) then
+		if ( attacker.Team && ply:Team() == attacker:Team() && ply != attacker ) then return false end
+	end
+	
+	if ( IsValid( attacker ) && attacker:IsPlayer() && GAMEMODE.NoPlayerPlayerDamage ) then return false end
+	if ( IsValid( attacker ) && !attacker:IsPlayer() && GAMEMODE.NoNonPlayerPlayerDamage ) then return false end
+	
+	return true
+
+end
+
+function GM:PlayerDeathThink( pl )
+	pl.DeathTime = pl.DeathTime or CurTime()
+	local timeDead = CurTime() - pl.DeathTime
+	
+	-- If we're in deathcam mode, promote to a generic spectator mode
+	if ( GAMEMODE.DeathLingerTime > 0 && timeDead > GAMEMODE.DeathLingerTime && ( pl:GetObserverMode() == OBS_MODE_FREEZECAM || pl:GetObserverMode() == OBS_MODE_DEATHCAM ) ) then
+		GAMEMODE:BecomeObserver( pl )
+	end
+	
+	-- Dont ever respawn if in spectate mode!!
+	if ( pl:Team() == TEAM_SPECTATOR || ( GAMEMODE.TeamBased && pl:Team() == TEAM_UNASSIGNED ) ) then return end
+	
+	-- If we're in a round based game, player NEVER spawns in death think
+	if ( GAMEMODE.NoAutomaticSpawning ) then return end
+	
+	-- Also during a round based game, don't allow respawns between transitioning rounds
+	if ( not GAMEMODE:InRound() and GAMEMODE.RoundBased ) then return end
+	
+	-- The gamemode is holding the player from respawning.
+	-- Probably because they have to choose a class..
+	if ( !pl:CanRespawn() ) then return end
+	
+	-- Don't respawn yet - wait for minimum time...
+	if ( GAMEMODE.MinimumDeathLength > 0 ) then 
+		
+		pl:SetNWFloat( "RespawnTime", pl.DeathTime + GAMEMODE.MinimumDeathLength )
+		
+		if ( timeDead < pl:GetRespawnTime() ) then
+			return
+		end
+		
+	end
+	
+	-- Force respawn
+	if ( pl:GetRespawnTime() != 0 && GAMEMODE.MaximumDeathLength != 0 && timeDead > GAMEMODE.MaximumDeathLength ) then
+		pl:Spawn()
+		return
+	end
+	
+	-- We're between min and max death length, player can press a key to spawn.
+	if ( pl:KeyPressed( IN_ATTACK ) || pl:KeyPressed( IN_ATTACK2 ) ) then
+		pl:Spawn()
+		return
+	end
+end
+
+-- Removed potential of breaking shit
+hook.Add( "PostPlayerDeath", "FrettaSpec", function( ply )
+	-- Note, this gets called AFTER DoPlayerDeath.. AND it gets called
+	-- for KillSilent too. So if Freezecam isn't set by DoPlayerDeath, we
+	-- pick up the slack by setting DEATHCAM here.
+	
+	if ( ply:GetObserverMode() == OBS_MODE_NONE ) then
+		ply:Spectate( OBS_MODE_DEATHCAM )
+	end
+end)
+
+function GM:DoPlayerDeath( ply, attacker, dmginfo )
+	
+	ply:CreateRagdoll()
+	ply:AddDeaths( 1 )
+	
+	if ( attacker:IsValid() && attacker:IsPlayer() ) then
+		
+		if ( attacker == ply ) then
+			
+			if ( GAMEMODE.TakeFragOnSuicide ) then
+				
+				attacker:AddFrags( -1 )
+				
+				if ( GAMEMODE.TeamBased && GAMEMODE.AddFragsToTeamScore ) then
+					team.AddScore( attacker:Team(), -1 )
+				end
+				
+			end
+			
+		else
+			
+			attacker:AddFrags( 1 )
+			
+			if ( GAMEMODE.TeamBased && GAMEMODE.AddFragsToTeamScore ) then
+				team.AddScore( attacker:Team(), 1 )
+			end
+			
+		end
+		
+	end
+	
+	if ( GAMEMODE.EnableFreezeCam && IsValid( attacker ) && attacker != ply ) then
+	
+		ply:SpectateEntity( attacker )
+		ply:Spectate( OBS_MODE_FREEZECAM )
+		
+	end
+	
+end
+
+--[[---------------------------------------------------------
+   Name: gamemode:PlayerRequestTeam()
+		Player wants to change team
+---------------------------------------------------------]]
+function GM:PlayerRequestTeam( ply, teamid )
+	if ( !GAMEMODE.TeamBased ) then return end
+	
+	if ( !GAMEMODE.AllowSpectating && teamid == TEAM_SPECTATOR ) then
+		ply:ChatPrint( "You can't join spectator!" )
+		return
+	end
+	
+	if ( !team.Joinable( teamid ) ) then
+		ply:ChatPrint( "You can't join that team" )
+		return
+	end
+	
+	if ( !GAMEMODE:PlayerCanJoinTeam( ply, teamid ) ) then
+		-- Messages here should be outputted by this function
+		return
+	end
+	
+	GAMEMODE:PlayerJoinTeam( ply, teamid )
+end
+
+function GM:OnEndOfGame(bGamemodeVote)
+	-- This is where you would show extra things before switching to gamemode vote
+	-- SET gm.votingdelay to increase the duration of this screen
+	
+	for k,v in pairs( player.GetAll() ) do
+		
+		v:Freeze(true)
+		v:ConCommand( "+showscores" )
+		
+	end
+	
+end
+
+-- Override OnEndOfGame to do any other stuff. like winning music.
+function GM:EndOfGame( bGamemodeVote )
+
+	if GAMEMODE.IsEndOfGame then return end
+
+	GAMEMODE.IsEndOfGame = true
+	SetGlobalBool( "IsEndOfGame", true )
+	
+	gamemode.Call("OnEndOfGame", bGamemodeVote)
+	
+	if ( bGamemodeVote ) then
+	
+		MsgN( "Starting gamemode voting..." )
+		PrintMessage( HUD_PRINTTALK, "Starting gamemode voting..." )
+		timer.Simple( GAMEMODE.VotingDelay, function() GAMEMODE:StartGamemodeVote() end )
+		
+	end
+
+end
+
+function GM:GetWinningFraction()
+	if ( !GAMEMODE.GMVoteResults ) then return end
+	return GAMEMODE.GMVoteResults.Fraction
+end
+
+local function TimeLeft( ply )
+
+	local tl = GAMEMODE:GetGameTimeLeft()
+	if ( tl == -1 ) then return end
+	
+	local Time = util.ToMinutesSeconds( tl )
+	
+	if ( IsValid( ply ) ) then
+		ply:PrintMessage( HUD_PRINTCONSOLE, Time )
+	else
+		MsgN( Time )
+	end
+	
+end
+
+concommand.Add( "timeleft", TimeLeft )
 
 function GM:CheckTeamBalance()
 
@@ -456,218 +615,3 @@ function GM:FindLeastCommittedPlayerOnTeam( teamid )
 	return worst, "Least points on their team"
 	
 end
-
-function GM:OnEndOfGame(bGamemodeVote)
-	-- This is where you would show extra things before switching to gamemode vote
-	-- SET gm.votingdelay to increase the duration of this screen
-	
-	for k,v in pairs( player.GetAll() ) do
-		
-		v:Freeze(true)
-		v:ConCommand( "+showscores" )
-		
-	end
-	
-end
-
--- Override OnEndOfGame to do any other stuff. like winning music.
-function GM:EndOfGame( bGamemodeVote )
-
-	if GAMEMODE.IsEndOfGame then return end
-
-	GAMEMODE.IsEndOfGame = true
-	SetGlobalBool( "IsEndOfGame", true )
-	
-	gamemode.Call("OnEndOfGame", bGamemodeVote)
-	
-	if ( bGamemodeVote ) then
-	
-		MsgN( "Starting gamemode voting..." )
-		PrintMessage( HUD_PRINTTALK, "Starting gamemode voting..." )
-		timer.Simple( GAMEMODE.VotingDelay, function() GAMEMODE:StartGamemodeVote() end )
-		
-	end
-
-end
-
-function GM:GetWinningFraction()
-	if ( !GAMEMODE.GMVoteResults ) then return end
-	return GAMEMODE.GMVoteResults.Fraction
-end
-
-function GM:PlayerShouldTakeDamage( ply, attacker )
-
-	if ( GAMEMODE.NoPlayerSelfDamage && IsValid( attacker ) && ply == attacker ) then return false end
-	if ( GAMEMODE.NoPlayerDamage ) then return false end
-	
-	if ( GAMEMODE.NoPlayerTeamDamage && IsValid( attacker ) ) then
-		if ( attacker.Team && ply:Team() == attacker:Team() && ply != attacker ) then return false end
-	end
-	
-	if ( IsValid( attacker ) && attacker:IsPlayer() && GAMEMODE.NoPlayerPlayerDamage ) then return false end
-	if ( IsValid( attacker ) && !attacker:IsPlayer() && GAMEMODE.NoNonPlayerPlayerDamage ) then return false end
-	
-	return true
-
-end
-
-
-function GM:PlayerDeathThink( pl )
-	
-	pl.DeathTime = pl.DeathTime or CurTime()
-	local timeDead = CurTime() - pl.DeathTime
-	
-	-- If we're in deathcam mode, promote to a generic spectator mode
-	if ( GAMEMODE.DeathLingerTime > 0 && timeDead > GAMEMODE.DeathLingerTime && ( pl:GetObserverMode() == OBS_MODE_FREEZECAM || pl:GetObserverMode() == OBS_MODE_DEATHCAM ) ) then
-		GAMEMODE:BecomeObserver( pl )
-	end
-	
-	-- Dont ever respawn if in spectate mode!!
-	if ( pl:Team() == TEAM_SPECTATOR || ( GAMEMODE.TeamBased && pl:Team() == TEAM_UNASSIGNED ) ) then return end
-	
-	-- If we're in a round based game, player NEVER spawns in death think
-	if ( GAMEMODE.NoAutomaticSpawning ) then return end
-	
-	-- Also during a round based game, don't allow respawns between transitioning rounds
-	if ( !GAMEMODE:InRound() and GAMEMODE.RoundBased ) then return end
-	
-	-- The gamemode is holding the player from respawning.
-	-- Probably because they have to choose a class..
-	if ( !pl:CanRespawn() ) then return end
-	
-	-- Don't respawn yet - wait for minimum time...
-	if ( GAMEMODE.MinimumDeathLength > 0 ) then 
-		
-		pl:SetNWFloat( "RespawnTime", pl.DeathTime + GAMEMODE.MinimumDeathLength )
-		
-		if ( timeDead < pl:GetRespawnTime() ) then
-			return
-		end
-		
-	end
-	
-	-- Force respawn
-	if ( pl:GetRespawnTime() != 0 && GAMEMODE.MaximumDeathLength != 0 && timeDead > GAMEMODE.MaximumDeathLength ) then
-		pl:Spawn()
-		return
-	end
-	
-	-- We're between min and max death length, player can press a key to spawn.
-	if ( pl:KeyPressed( IN_ATTACK ) || pl:KeyPressed( IN_ATTACK2 ) ) then
-		pl:Spawn()
-		return
-	end
-	
-end
-
-function GM:PostPlayerDeath( ply )
-
-	-- Note, this gets called AFTER DoPlayerDeath.. AND it gets called
-	-- for KillSilent too. So if Freezecam isn't set by DoPlayerDeath, we
-	-- pick up the slack by setting DEATHCAM here.
-	
-	if ( ply:GetObserverMode() == OBS_MODE_NONE ) then
-		ply:Spectate( OBS_MODE_DEATHCAM )
-	end
-	
-	player_manager.RunClass( ply, "Death" )
-end
-
-function GM:DoPlayerDeath( ply, attacker, dmginfo )
-	
-	ply:CreateRagdoll()
-	ply:AddDeaths( 1 )
-	
-	if ( attacker:IsValid() && attacker:IsPlayer() ) then
-		
-		if ( attacker == ply ) then
-			
-			if ( GAMEMODE.TakeFragOnSuicide ) then
-				
-				attacker:AddFrags( -1 )
-				
-				if ( GAMEMODE.TeamBased && GAMEMODE.AddFragsToTeamScore ) then
-					team.AddScore( attacker:Team(), -1 )
-				end
-				
-			end
-			
-		else
-			
-			attacker:AddFrags( 1 )
-			
-			if ( GAMEMODE.TeamBased && GAMEMODE.AddFragsToTeamScore ) then
-				team.AddScore( attacker:Team(), 1 )
-			end
-			
-		end
-		
-	end
-	
-	if ( GAMEMODE.EnableFreezeCam && IsValid( attacker ) && attacker != ply ) then
-	
-		ply:SpectateEntity( attacker )
-		ply:Spectate( OBS_MODE_FREEZECAM )
-		
-	end
-	
-end
-
-function GM:StartSpectating( ply )
-
-	if ( !GAMEMODE:PlayerCanJoinTeam( ply ) ) then return end
-	
-	ply:StripWeapons()
-	ply:StripAmmo()
-	GAMEMODE:PlayerJoinTeam( ply, TEAM_SPECTATOR )
-	GAMEMODE:BecomeObserver( ply )
-
-end
-
-function GM:EndSpectating( ply )
-	
-	if ( !GAMEMODE:PlayerCanJoinTeam( ply ) ) then return end
-	
-	GAMEMODE:PlayerJoinTeam( ply, TEAM_UNASSIGNED )
-	
-	ply:KillSilent()
-	
-end
-
---[[---------------------------------------------------------
-   Name: gamemode:PlayerRequestTeam()
-		Player wants to change team
----------------------------------------------------------]]
-function GM:PlayerRequestTeam( ply, teamid )
-	
-	if ( !GAMEMODE.TeamBased && GAMEMODE.AllowSpectating ) then
-		
-		if ( teamid == TEAM_SPECTATOR ) then
-			GAMEMODE:StartSpectating( ply )
-		else
-			GAMEMODE:EndSpectating( ply )
-		end
-		
-		return
-		
-	end
-	
-	return BaseClass.PlayerRequestTeam(self, ply, teamid)
-end
-
-local function TimeLeft( ply )
-
-	local tl = GAMEMODE:GetGameTimeLeft()
-	if ( tl == -1 ) then return end
-	
-	local Time = util.ToMinutesSeconds( tl )
-	
-	if ( IsValid( ply ) ) then
-		ply:PrintMessage( HUD_PRINTCONSOLE, Time )
-	else
-		MsgN( Time )
-	end
-	
-end
-
-concommand.Add( "timeleft", TimeLeft )

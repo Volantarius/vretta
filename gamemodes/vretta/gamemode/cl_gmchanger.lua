@@ -64,8 +64,6 @@ function GM:ShowClassChooser( TEAMID )
 	ClassChooser:SetHoverText( "What class do you want to be?" )
 	
 	Classes = team.GetClass( TEAMID )
-	-- Need to add checks if the team is spectator
-	-- Also if there is no classes for the team default to something
 	
 	for k, v in SortedPairs( Classes ) do
 		

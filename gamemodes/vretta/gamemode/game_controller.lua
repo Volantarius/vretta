@@ -1,4 +1,7 @@
-
+--[[
+	NOT FINISHED, this is newly added for non round based games.
+	Not completely finished but here as a template!
+]]
 function GM:SetInGame( b ) SetGlobalBool( "InGameSingle", b ) end
 function GM:InGame() return GetGlobalBool( "InGameSingle", false ) end
 
