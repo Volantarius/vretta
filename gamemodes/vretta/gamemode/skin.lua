@@ -327,6 +327,10 @@ function SKIN:SchemeSpectatorInfo( panel )
 		
 end
 
+--function SKIN:SchemeScorePanelLabel( panel )
+	--Default actually looks nice lol
+--end
+
 --[[---------------------------------------------------------
 	ScoreHeader
 ---------------------------------------------------------]]

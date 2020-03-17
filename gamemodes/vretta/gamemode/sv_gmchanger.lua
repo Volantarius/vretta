@@ -364,19 +364,8 @@ function GM:FinishMapVote()
 end
 
 function GM:ChangeGamemode()
-	
 	local gm = GAMEMODE:WorkOutWinningGamemode()
 	local mp = GAMEMODE:GetWinningMap()
-	
-	-- Restore defaults when switching gamemodes
-	-- Make sure these are up to date from GMOD
-	--[[RunConsoleCommand("sv_stopspeed", "10")
-	RunConsoleCommand("sv_friction", "8")
-	RunConsoleCommand("sv_accelerate", "10")
-	RunConsoleCommand("sv_airaccelerate", "10")
-	RunConsoleCommand("sv_gravity", "600")
-	RunConsoleCommand("sv_sticktoground", "1")
-	RunConsoleCommand("mp_falldamage", "0")]]
 	
 	RunConsoleCommand( "gamemode", gm )
 	RunConsoleCommand( "changelevel", mp )

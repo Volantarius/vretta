@@ -397,7 +397,7 @@ function GM:PlayerDeathThink( pl )
 	
 	-- The gamemode is holding the player from respawning.
 	-- Probably because they have to choose a class..
-	if ( !pl:CanRespawn() ) then return end
+	if ( not pl:CanRespawn() ) then return end
 	
 	-- Don't respawn yet - wait for minimum time...
 	if ( GAMEMODE.MinimumDeathLength > 0 ) then 

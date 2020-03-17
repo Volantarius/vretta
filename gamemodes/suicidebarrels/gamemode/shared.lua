@@ -72,18 +72,3 @@ function GM:CreateTeams()
 	team.SetSpawnPoint( TEAM_SPECTATOR, { "info_player_start", "info_player_terrorist", "info_player_counterterrorist", "info_player_combine", "info_player_rebel" } )
 
 end
-
-function GM:PlayerCanJoinTeam( ply, teamid )
-
-	if ( SERVER && !self.BaseClass:PlayerCanJoinTeam( ply, teamid ) ) then 
-		return false 
-	end
-
-	if ( ply:Team() == TEAM_BARREL ) then
-		ply:ChatPrint( "You can not leave us!" )
-		return false
-	end
-	
-	return true
-	
-end

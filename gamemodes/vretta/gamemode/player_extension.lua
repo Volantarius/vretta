@@ -23,23 +23,16 @@ function meta:GetRespawnTime( num )
 	return time
 end
 
+-- Used for changing classes right now
+-- Use CanRespawn to make sure your gamemode can start once atleast one person has chosen-
+-- a class for that team
 function meta:DisableRespawn( strReason )
-	
-	--debug.Trace()
-	
-	-- Enabled just for reference
-	self.m_bCanRespawn = false
 	
 	self:SetNWBool( "CanRespawn", false )
 	
 end
 
 function meta:EnableRespawn()
-	
-	--debug.Trace()
-	
-	-- Enabled just for reference
-	self.m_bCanRespawn = true
 	
 	self:SetNWBool( "CanRespawn", true )
 	

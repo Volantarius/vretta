@@ -58,15 +58,26 @@ function GM:RoundTimerEnd()
 end
 
 
-function GM:PlayerSpawn( ply )
+function GM:PlayerSpawn( ply, transition )
+	if ( transition ) then return end
 	
-	self.BaseClass:PlayerSpawn( ply )
+	self.BaseClass:PlayerSpawn( ply, transition )
 	
 	if ( team.NumPlayers( TEAM_HUMAN ) > 1 and team.NumPlayers( TEAM_BARREL ) < 1 ) then
 		local randomguy = table.Random( team.GetPlayers( TEAM_HUMAN ) )
-		--randomguy:SetTeam( TEAM_BARREL ) -- Don't ever use this function, this is used internally. Below will correctly assign the team without issues
 		GAMEMODE:PlayerJoinTeam( randomguy, TEAM_BARREL )
 		randomguy:KillSilent()
 	end
 	
+end
+
+function GM:PlayerCanJoinTeam( ply, teamid )
+	if ( ply:Team() == TEAM_BARREL ) then
+		ply:ChatPrint( "You can not leave us!" )
+		return false
+	end
+	
+	-- Returns the base gamemode's PlayerCanJoinTeam
+	--return BaseClass.PlayerCanJoinTeam( self, ply, teamid )
+	return self.BaseClass:PlayerCanJoinTeam( ply, teamid )
 end

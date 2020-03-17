@@ -4,7 +4,7 @@
 	"name"		"Suicide Barrels"
 	"version"	"1"
 	"menusystem" "1"
-	//"workshopid"  "ADDME"
+//	"workshopid"  "ADDME"
 	
 	"author_name"	"Otoris"
 	"author_email"	""
