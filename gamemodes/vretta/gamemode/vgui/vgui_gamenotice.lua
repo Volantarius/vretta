@@ -1,7 +1,3 @@
--- client cvars to control deathmsgs
-local hud_deathnotice_time = CreateClientConVar( "hud_deathnotice_time", "6", true, false )
-local hud_deathnotice_limit = CreateClientConVar( "hud_deathnotice_limit", "5", true, false )
-
 --[[
 	This is the player death panel. This should be parented to a DeathMessage_Panel. The DeathMessage_Panel that
 	it's parented to controls aspects such as the position on screen. All this panel's job is to print the

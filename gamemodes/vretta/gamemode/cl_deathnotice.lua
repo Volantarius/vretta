@@ -4,6 +4,10 @@
 
 include( 'vgui/vgui_gamenotice.lua' )
 
+-- Fix deathnotice time
+local hud_deathnotice_time = CreateClientConVar( "hud_deathnotice_time", "6", true, false )
+local hud_deathnotice_limit = CreateClientConVar( "hud_deathnotice_limit", "5", true, false )
+
 local function CreateDeathNotify()
 
 	local x, y = ScrW(), ScrH()
@@ -14,7 +18,7 @@ local function CreateDeathNotify()
 	g_DeathNotify:SetSize( x - ( 25 ), y )
 	g_DeathNotify:SetAlignment( 9 )
 	g_DeathNotify:SetSkin( GAMEMODE.HudSkin )
-	g_DeathNotify:SetLife( 4 )
+	g_DeathNotify:SetLife( hud_deathnotice_time:GetInt() )
 	g_DeathNotify:ParentToHUD()
 
 end
