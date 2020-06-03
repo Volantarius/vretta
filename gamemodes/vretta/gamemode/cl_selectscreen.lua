@@ -272,19 +272,18 @@ function GM:ShowTeam()
 	
 		TeamPanel = vgui.CreateFromTable( vgui_Splash )
 		TeamPanel:SetHeaderText( "Choose Team" )
-
-		local AllTeams = team.GetAllTeams()
-		for ID, TeamInfo in SortedPairs ( AllTeams ) do
 		
-			if ( ID != TEAM_CONNECTING && ID != TEAM_UNASSIGNED && ( ID != TEAM_SPECTATOR || GAMEMODE.AllowSpectating ) && team.Joinable(ID) ) then
+		for ID, TeamInfo in pairs( team.GetAllTeams() ) do
 			
+			if ( ID != TEAM_CONNECTING && ID != TEAM_UNASSIGNED && ( ID != TEAM_SPECTATOR || GAMEMODE.AllowSpectating ) && TeamInfo.Joinable ) then
+				
 				if ( ID == TEAM_SPECTATOR ) then
 					TeamPanel:AddSpacer( 10 )
 				end
-			
+				
 				local strName = TeamInfo.Name
 				local func = function() RunConsoleCommand( "changeteam", ID ) end
-			
+				
 				local btn = TeamPanel:AddSelectButton( strName, func )
 				btn.m_colBackground = TeamInfo.Color
 				btn.Think = function( self ) 
@@ -292,7 +291,7 @@ function GM:ShowTeam()
 								self:SetDisabled( GAMEMODE:TeamHasEnoughPlayers( ID ) ) 
 							end
 				
-				if (  IsValid( LocalPlayer() ) && LocalPlayer():Team() == ID ) then
+				if ( IsValid( LocalPlayer() ) && LocalPlayer():Team() == ID ) then
 					btn:SetDisabled( true )
 				end
 				

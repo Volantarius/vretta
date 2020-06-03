@@ -71,7 +71,11 @@ end
 ---------------------------------------------------------]]
 function GM:PlayerInitialSpawn( pl, transition )
 	pl:SetTeam( TEAM_UNASSIGNED )
-	pl:SetNWBool( "FirstSpawn", true )--TEST
+	pl:SetNWBool( "FirstSpawn", true )
+	
+	-- Players will always spawn when joining the game
+	-- Kinda weird behaviour but in GM:PlayerSpawn we can account for this
+	-- and kill them before playing a player class that isn't meant for spectating
 	
 	GAMEMODE:CheckPlayerReconnected( pl )
 end
@@ -103,34 +107,27 @@ function GM:ShowHelp( pl )
 	
 end
 
-function GM:PlayerSpawn( pl, transition ) 
+function GM:PlayerSpawn( pl, transition )
 	if ( transition ) then return end
+	
+	local plTeam = pl:Team()
 	
 	if ( pl:GetNWBool( "FirstSpawn", true ) ) then
 		pl:SetNWBool( "FirstSpawn", false )
+		
+		pl:KillSilent()
 		
 		pl:SetTeam( TEAM_SPECTATOR )
 		
 		pl:Spectate( OBS_MODE_ROAMING )
 		
-		pl:SetNWBool( "FirstSpec", true )--TEST
-	end
-	
-	if ( pl:Team() == TEAM_SPECTATOR || ( GAMEMODE.TeamBased && pl:Team() == TEAM_UNASSIGNED ) ) then
-		
-		if ( pl:GetNWBool( "FirstSpec", false ) ) then
-			-- We want to use the gamemode's spectator spawn position if possible!
-			pl:SetNWBool( "FirstSpec", false )
-			
-			pl:Spectate( OBS_MODE_ROAMING )--Avoid changing client spectator convar
-		else
-			GAMEMODE:BecomeObserver( pl )--This will call player's spectator convar
-		end
-		
 		return
 	end
 	
-	local Classes = team.GetClass( pl:Team() ) -- Returns nil if no classes
+	-- Welp I don't know why I never had this here but this fixed alot of jank
+	if (plTeam == TEAM_CONNECTING || plTeam == TEAM_SPECTATOR || (GAMEMODE.TeamBased && plTeam == TEAM_UNASSIGNED)) then return end
+	
+	local Classes = team.GetClass( plTeam ) -- Returns nil if no classes
 	local SpawnClass = pl:GetNWString( "SpawnClass", "" )
 	
 	-- Player requested a new class, so we set that here
@@ -148,7 +145,13 @@ function GM:PlayerSpawn( pl, transition )
 	
 	-- Get the player class just in case nothing was changed on last spawn!
 	local pClass = player_manager.GetPlayerClass( pl )
-	local gClass = baseclass.Get( pClass )
+	
+	if (pClass == nil) then
+		ErrorNoHalt("(VRETTA) Invalid player class!")
+		return
+	end
+	
+	local gClass = baseclass.Get( pClass ) -- Will causes errors
 	
 	if ( gClass.DrawTeamRing ) then pl:SetNWBool( "DrawRing", true ) else pl:SetNWBool( "DrawRing", false ) end
 	
@@ -215,11 +218,10 @@ concommand.Add( "seensplash", SeenSplash )
 
 --[[-------------------------------------------------------------------------
 	PlayerJoinTeam
-	
-	Please use this function whenever you change the player's team
-	This will set the team regardless of autoteam,
-	will set to spectator mode CORRECTLY, and give the option to choose
-	a team class if enabled.
+	To reflect the description on the wiki, this is only a helper function now.
+	This will set the team and do some of the things vretta wants to do.
+	Does not call OnPlayerChangedTeam, Player:SetTeam will call PlayerChangedTeam
+	Therefore all important team changing features are placed in PlayerChangedTeam
 ---------------------------------------------------------------------------]]
 function GM:PlayerJoinTeam( ply, teamid )
 	
@@ -235,7 +237,6 @@ function GM:PlayerJoinTeam( ply, teamid )
 	end
 	
 	ply:SetTeam( teamid )
-	ply.LastTeamSwitch = RealTime()
 	
 	local Classes = team.GetClass( teamid )
 	
@@ -276,12 +277,61 @@ function GM:PlayerJoinTeam( ply, teamid )
 		ply:EnableRespawn()
 	end
 	
-	if ( teamid == TEAM_SPECTATOR ) then
-		-- Remove all classes for spectators
+	-- So SetTeam calls PlayerChangedTeam now
+	-- So this function below is only for gamemodes to do additional things!
+	GAMEMODE:OnPlayerChangedTeam( ply, iOldTeam, teamid )
+end
+
+-- Helper function now, use this in your gamemode. Avoid making changes to internal code!
+function GM:OnPlayerChangedTeam( ply, oldTeam, newTeam ) end
+
+-- Originally GM:OnPlayerChangedTeam; which is deprecated
+function GM:PlayerChangedTeam( ply, oldteam, newteam )
+	
+	-- DO NOT SPAWN PLAYERS IN THIS FUNCTION!!
+	
+	if ( newteam == TEAM_SPECTATOR ) then
+		-- For spectator to work, you dont have to spawn them
+		-- Simply run BecomeObserver and thats it
+		
+		ply:KillSilent()--Maybe?
+		ply:StripWeapons()
+		ply:StripAmmo()
+		GAMEMODE:BecomeObserver( ply )
+		ply:Freeze( false ) -- Just in case
 		player_manager.ClearPlayerClass( ply )
+		
+	elseif ( (newteam < 1000 && newteam > 0) || (not GAMEMODE.TeamBased && newteam == TEAM_UNASSIGNED) ) then
+		
+		
+		-- Spawning players here is really early now
+		-- DeathThink should allow players to spawn in
+		
+		if ( oldteam ~= TEAM_SPECTATOR and oldteam ~= TEAM_CONNECTING ) then
+			-- I don't know which one is used so lol
+			ply.LastTeamChange = RealTime()
+			ply.LastTeamSwitch = RealTime()
+			ply:SetNWFloat( "RespawnTime", CurTime() + GAMEMODE.MinimumDeathLength )
+		end
+		
+	else
+		
+		-- If we're straight up changing teams just hang
+		--  around until we're ready to respawn onto the 
+		--  team that we chose
+		
 	end
 	
-	GAMEMODE:OnPlayerChangedTeam( ply, iOldTeam, teamid )
+	if ( GAMEMODE.PrintTeamChanges ) then
+		if (GAMEMODE.TeamBased && newteam == TEAM_UNASSIGNED) then return end
+		
+		net.Start( "fretta_teamchange" )
+			net.WriteEntity( ply )
+			net.WriteUInt( oldteam, 16 )
+			net.WriteUInt( newteam, 16 )
+		net.Broadcast()
+	end
+	
 end
 
 function GM:PlayerJoinClass( ply, classname, teamid )
@@ -291,10 +341,8 @@ function GM:PlayerJoinClass( ply, classname, teamid )
 	
 	-- If player changed their class then change it here
 	if ( ply:GetNWBool( "ChangedClass", false ) ) then
-		local OldTeam = ply:GetNWInt( "OldTeam", teamid )
 		
-		ply.DeathTime = CurTime()
-		GAMEMODE:OnPlayerChangedTeam( ply, OldTeam, teamid )
+		ply:SetNWFloat( "RespawnTime", CurTime() + GAMEMODE.MinimumDeathLength )
 		ply:EnableRespawn()
 		
 		-- Switch back to normal
@@ -315,50 +363,6 @@ function GM:PlayerCanJoinTeam( ply, teamid )
 	end
 	
 	return BaseClass.PlayerCanJoinTeam( self, ply, teamid )
-end
-
-function GM:OnPlayerChangedTeam( ply, oldteam, newteam )
-	
-	if ( newteam == TEAM_SPECTATOR ) then
-		-- For spectator to work, you dont have to spawn them
-		-- Simply run BecomeObserver and thats it
-		
-		ply:StripWeapons()
-		ply:StripAmmo()
-		GAMEMODE:BecomeObserver( ply )
-		ply:Freeze( false ) -- Just in case
-		
-	elseif ( oldteam == TEAM_SPECTATOR ) then
-		
-		-- If we're changing from spectator, join the game
-		if ( !GAMEMODE.NoAutomaticSpawning && newteam ~= TEAM_CONNECTING && (GAMEMODE.TeamBased && newteam ~= TEAM_UNASSIGNED) ) then
-			ply:Spawn()
-		end
-		
-	elseif ( oldteam ~= TEAM_SPECTATOR ) then
-		
-		ply.LastTeamChange = CurTime()
-		
-	else
-		
-		-- If we're straight up changing teams just hang
-		--  around until we're ready to respawn onto the 
-		--  team that we chose
-		
-	end
-	
-	--PrintMessage( HUD_PRINTTALK, Format( "%s joined '%s'", ply:Nick(), team.GetName( newteam ) ) )
-	
-	-- Send net msg for team change
- 	
- 	if ( GAMEMODE.PrintTeamChanges ) then
- 		net.Start( "fretta_teamchange" )
-			net.WriteEntity( ply )
-			net.WriteUInt( oldteam, 16 )
-			net.WriteUInt( newteam, 16 )
-	  net.Broadcast()
- 	end
- 	
 end
 
 function GM:PlayerShouldTakeDamage( ply, attacker )
@@ -386,8 +390,10 @@ function GM:PlayerDeathThink( pl )
 		GAMEMODE:BecomeObserver( pl )
 	end
 	
+	local pTeam = pl:Team()
+	
 	-- Dont ever respawn if in spectate mode!!
-	if ( pl:Team() == TEAM_SPECTATOR || ( GAMEMODE.TeamBased && pl:Team() == TEAM_UNASSIGNED ) ) then return end
+	if ( pTeam == TEAM_SPECTATOR || ( GAMEMODE.TeamBased && pTeam == TEAM_UNASSIGNED ) ) then return end
 	
 	-- If we're in a round based game, player NEVER spawns in death think
 	if ( GAMEMODE.NoAutomaticSpawning ) then return end
@@ -411,7 +417,16 @@ function GM:PlayerDeathThink( pl )
 	end
 	
 	-- Force respawn
-	if ( pl:GetRespawnTime() != 0 && GAMEMODE.MaximumDeathLength != 0 && timeDead > GAMEMODE.MaximumDeathLength ) then
+	if ( pl:GetRespawnTime() != 0 && GAMEMODE.MaximumDeathLength ~= 0 && timeDead > GAMEMODE.MaximumDeathLength ) then
+		pl:Spawn()
+		return
+	end
+	
+	-- Proper automatic team switch spawn
+	local iOldTeam = pl:GetNWInt( "OldTeam", -4 )
+	
+	if ( iOldTeam ~= TEAM_CONNECTING && iOldTeam ~= -4 && pTeam ~= iOldTeam && pl:GetRespawnTime() != 0 && timeDead > GAMEMODE.MinimumDeathLength ) then
+		pl:SetNWInt( "OldTeam", pTeam )
 		pl:Spawn()
 		return
 	end

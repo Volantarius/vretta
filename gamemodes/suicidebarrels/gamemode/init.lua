@@ -25,7 +25,7 @@ end
 
 function GM:CheckRoundEnd()
 	
-	// Do checks here!
+	-- Do checks here!
 	if ( !GAMEMODE:InRound() ) then return end
 	
 	if( team.NumPlayers( TEAM_HUMAN ) <= 0 and team.NumPlayers( TEAM_BARREL ) > 0 ) then
@@ -56,7 +56,6 @@ function GM:RoundTimerEnd()
 	GAMEMODE:ResetTeams()
 	
 end
-
 
 function GM:PlayerSpawn( ply, transition )
 	if ( transition ) then return end

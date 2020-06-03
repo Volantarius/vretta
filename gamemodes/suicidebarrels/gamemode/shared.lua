@@ -1,4 +1,3 @@
-
 GM.Name 	= "Suicide Barrels"
 GM.Author 	= "Otoris"
 GM.Email 	= ""
@@ -27,12 +26,12 @@ GM.NoNonPlayerPlayerDamage = false
 GM.TakeFragOnSuicide = false
 GM.AddFragsToTeamScore = false
 
-GM.MaximumDeathLength = 0			
-GM.MinimumDeathLength = 3			
-GM.ForceJoinBalancedTeams = false	
+GM.MaximumDeathLength = 0
+GM.MinimumDeathLength = 3
+GM.ForceJoinBalancedTeams = false
 
-GM.NoAutomaticSpawning = false		
-GM.RoundBased = true			
+GM.NoAutomaticSpawning = false -- Only enable this if you want to control the spawning of players, otherwise they can spawn in by themselves
+GM.RoundBased = true
 GM.RoundEndsWhenOneTeamAlive = false
 
 GM.PrintTeamChanges = false
@@ -41,7 +40,6 @@ TEAM_HUMAN = 1
 TEAM_BARREL = 2
 
 TAUNTS = {
-
 	"vo/npc/male01/behindyou01.wav",
 	"vo/npc/male01/behindyou02.wav",
 	"vo/npc/male01/zombies01.wav",
@@ -53,7 +51,6 @@ TAUNTS = {
 	"vo/npc/male01/runforyourlife01.wav",
 	"vo/npc/male01/runforyourlife02.wav",
 	"vo/npc/male01/runforyourlife03.wav"
-	
 }
 
 function GM:CreateTeams()
