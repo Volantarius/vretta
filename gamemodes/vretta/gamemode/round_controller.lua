@@ -124,6 +124,10 @@ function GM:PreRoundStart( iNum )
 	SetGlobalInt( "RoundNumber", iNum )
 	SetGlobalFloat( "RoundStartTime", CurTime() + GAMEMODE.RoundPreStartTime )
 	
+	for id,ply in pairs( player.GetAll() ) do
+		ply:SetNWInt( "OldTeam", ply:Team() )
+	end
+	
 	GAMEMODE:ClearRoundResult()
 	GAMEMODE:OnPreRoundStart( GetGlobalInt( "RoundNumber" ) )
 	GAMEMODE:SetInRound( true )

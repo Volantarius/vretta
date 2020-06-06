@@ -58,12 +58,12 @@ function GM:Initialize()
 	end
 end
 
-function GM:Think()
+hook.Add("Think", "VrettaEndOfGame", function()
 	-- Check if the round or game is over from the time
 	if( !GAMEMODE.IsEndOfGame && ( !GAMEMODE.RoundBased || ( GAMEMODE.RoundBased && GAMEMODE:CanEndRoundBasedGame() ) ) && CurTime() >= GAMEMODE.GetTimeLimit() ) then
 		GAMEMODE:EndOfGame( true )
 	end
-end
+end)
 
 --[[---------------------------------------------------------
    Name: gamemode:PlayerInitialSpawn( Player ply )
@@ -121,6 +121,11 @@ function GM:PlayerSpawn( pl, transition )
 		
 		pl:Spectate( OBS_MODE_ROAMING )
 		
+		-- Allow fist spawn to change team as soon as possible
+		pl.LastTeamChange = 0
+		pl.LastTeamSwitch = 0
+		pl:SetNWFloat( "RespawnTime", 0 )
+		
 		return
 	end
 	
@@ -132,6 +137,8 @@ function GM:PlayerSpawn( pl, transition )
 	
 	-- Player requested a new class, so we set that here
 	-- Elsewhere the class gets changed with PlayerJoinTeam
+	
+	-- Make this also check if the playerclass ever changed
 	
 	if ( Classes != nil and SpawnClass != "" ) then
 		
@@ -276,10 +283,6 @@ function GM:PlayerJoinTeam( ply, teamid )
 		GAMEMODE:PlayerRequestClass( ply, 1, true )
 		ply:EnableRespawn()
 	end
-	
-	-- So SetTeam calls PlayerChangedTeam now
-	-- So this function below is only for gamemodes to do additional things!
-	GAMEMODE:OnPlayerChangedTeam( ply, iOldTeam, teamid )
 end
 
 -- Helper function now, use this in your gamemode. Avoid making changes to internal code!
@@ -301,24 +304,14 @@ function GM:PlayerChangedTeam( ply, oldteam, newteam )
 		ply:Freeze( false ) -- Just in case
 		player_manager.ClearPlayerClass( ply )
 		
-	elseif ( (newteam < 1000 && newteam > 0) || (not GAMEMODE.TeamBased && newteam == TEAM_UNASSIGNED) ) then
+	end
+	
+	if ( oldteam ~= TEAM_CONNECTING ) then
 		
-		
-		-- Spawning players here is really early now
-		-- DeathThink should allow players to spawn in
-		
-		if ( oldteam ~= TEAM_SPECTATOR and oldteam ~= TEAM_CONNECTING ) then
-			-- I don't know which one is used so lol
-			ply.LastTeamChange = RealTime()
-			ply.LastTeamSwitch = RealTime()
-			ply:SetNWFloat( "RespawnTime", CurTime() + GAMEMODE.MinimumDeathLength )
-		end
-		
-	else
-		
-		-- If we're straight up changing teams just hang
-		--  around until we're ready to respawn onto the 
-		--  team that we chose
+		-- I don't know which one is used so lol
+		ply.LastTeamChange = RealTime()
+		ply.LastTeamSwitch = RealTime()
+		ply:SetNWFloat( "RespawnTime", CurTime() + GAMEMODE.MinimumDeathLength )
 		
 	end
 	
@@ -332,6 +325,10 @@ function GM:PlayerChangedTeam( ply, oldteam, newteam )
 		net.Broadcast()
 	end
 	
+	-- So SetTeam calls PlayerChangedTeam now
+	-- So this function below is only for gamemodes to do additional things!
+		-- Not sure if this should be called here?? Don't know
+	GAMEMODE:OnPlayerChangedTeam( ply, iOldTeam, teamid )
 end
 
 function GM:PlayerJoinClass( ply, classname, teamid )
