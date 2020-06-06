@@ -1,7 +1,7 @@
-"suicidebarrels"
+"suicidebarrelsvretta"
 {
-	"title"		"Suicide Barrels"
-	"name"		"Suicide Barrels"
+	"title"		"Suicide Barrels (Vretta)"
+	"name"		"Suicide Barrels (Vretta)"
 	"version"	"1"
 	"menusystem" "1"
 //	"workshopid"  "ADDME"

@@ -1,4 +1,4 @@
-GM.Name 	= "Suicide Barrels"
+GM.Name 	= "Suicide Barrels (Vretta)"
 GM.Author 	= "Otoris"
 GM.Email 	= ""
 GM.Website 	= ""
