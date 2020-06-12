@@ -112,7 +112,7 @@ function GM:UpdateHUD_Observer( bWaitingToSpawn, InRound, ObserveMode, ObserveTa
 	
 	if ( ObserveMode == OBS_MODE_IN_EYE || ObserveMode == OBS_MODE_CHASE ) then
 		if ( IsValid( ObserveTarget ) && ObserveTarget:IsPlayer() && ObserveTarget != LocalPlayer() ) then
-			--lbl = "SPECTATING"
+			lbl = "Spectating"
 			txt = ObserveTarget:Nick() .. " - " .. ObserveTarget:Health() .. "%"
 			col = team.GetColor( ObserveTarget:Team() )
 		end
@@ -126,7 +126,8 @@ function GM:UpdateHUD_Observer( bWaitingToSpawn, InRound, ObserveMode, ObserveTa
 			end
 		end
 	elseif ( !IsValid( ObserveTarget ) && ObserveMode == OBS_MODE_ROAMING ) then
-		txt = "SPECTATING"
+		txt = "Spectating"
+		--lbl = "Spectating"
 	end
 	
 	if ( txt ) then

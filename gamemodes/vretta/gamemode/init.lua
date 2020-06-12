@@ -328,7 +328,7 @@ function GM:PlayerChangedTeam( ply, oldteam, newteam )
 	-- So SetTeam calls PlayerChangedTeam now
 	-- So this function below is only for gamemodes to do additional things!
 		-- Not sure if this should be called here?? Don't know
-	GAMEMODE:OnPlayerChangedTeam( ply, iOldTeam, teamid )
+	--GAMEMODE:OnPlayerChangedTeam( ply, iOldTeam, teamid )
 end
 
 function GM:PlayerJoinClass( ply, classname, teamid )
@@ -491,7 +491,8 @@ end
 		Player wants to change team
 ---------------------------------------------------------]]
 function GM:PlayerRequestTeam( ply, teamid )
-	if ( !GAMEMODE.TeamBased ) then return end
+	-- oops
+	--if ( !GAMEMODE.TeamBased ) then return end
 	
 	if ( !GAMEMODE.AllowSpectating && teamid == TEAM_SPECTATOR ) then
 		ply:ChatPrint( "You can't join spectator!" )
