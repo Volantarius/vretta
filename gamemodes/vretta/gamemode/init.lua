@@ -491,9 +491,6 @@ end
 		Player wants to change team
 ---------------------------------------------------------]]
 function GM:PlayerRequestTeam( ply, teamid )
-	-- oops
-	--if ( !GAMEMODE.TeamBased ) then return end
-	
 	if ( !GAMEMODE.AllowSpectating && teamid == TEAM_SPECTATOR ) then
 		ply:ChatPrint( "You can't join spectator!" )
 		return

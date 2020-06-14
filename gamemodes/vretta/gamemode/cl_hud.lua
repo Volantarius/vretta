@@ -104,6 +104,12 @@ function GM:UpdateHUD_RoundResult( RoundResult, Alive )
 
 end
 
+local modeTranslation = {
+	[OBS_MODE_IN_EYE] = "Spectating",
+	[OBS_MODE_CHASE] = "Chasing",
+	[OBS_MODE_ROAMING] = "Roaming"
+}
+
 -- Made to use already existing information to make a little nicer!
 function GM:UpdateHUD_Observer( bWaitingToSpawn, InRound, ObserveMode, ObserveTarget )
 	local lbl = nil
@@ -112,7 +118,7 @@ function GM:UpdateHUD_Observer( bWaitingToSpawn, InRound, ObserveMode, ObserveTa
 	
 	if ( ObserveMode == OBS_MODE_IN_EYE || ObserveMode == OBS_MODE_CHASE ) then
 		if ( IsValid( ObserveTarget ) && ObserveTarget:IsPlayer() && ObserveTarget != LocalPlayer() ) then
-			lbl = "Spectating"
+			--lbl = "Spectating"
 			txt = ObserveTarget:Nick() .. " - " .. ObserveTarget:Health() .. "%"
 			col = team.GetColor( ObserveTarget:Team() )
 		end
@@ -126,8 +132,21 @@ function GM:UpdateHUD_Observer( bWaitingToSpawn, InRound, ObserveMode, ObserveTa
 			end
 		end
 	elseif ( !IsValid( ObserveTarget ) && ObserveMode == OBS_MODE_ROAMING ) then
-		txt = "Spectating"
+		--txt = "Spectating"
 		--lbl = "Spectating"
+	end
+	
+	if ( lbl == nil ) then
+		if ( LocalPlayer():Alive() ) then
+			lbl = "Possessing"--For entity driving lol
+		else
+			lbl = modeTranslation[ ObserveMode ]
+		end
+	end
+	
+	if ( txt == nil ) then
+		txt = lbl
+		lbl = nil
 	end
 	
 	if ( txt ) then
@@ -136,7 +155,7 @@ function GM:UpdateHUD_Observer( bWaitingToSpawn, InRound, ObserveMode, ObserveTa
 		if ( lbl ) then txtLabel:SetLabel( lbl ) end
 		txtLabel:SetTextColor( col )
 		
-		GAMEMODE:AddHUDItem( txtLabel, 2 )		
+		GAMEMODE:AddHUDItem( txtLabel, 2 )
 	end
 	
 	GAMEMODE:UpdateHUD_Dead( bWaitingToSpawn, InRound )

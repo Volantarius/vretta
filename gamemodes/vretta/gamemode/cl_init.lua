@@ -68,13 +68,12 @@ end
 
 concommand.Add( "seensplashlocal", function(ply, cmd, args, argStr) SeenSplashLocal() end )
 
-function GM:InitPostEntity()
+hook.Add("InitPostEntity", "VrettaShowSplash", function()
 	-- This was changed to make the server send the showteam or showhelp things
 	-- AFTER the player sees the splashscreen, since they were getting called so
 	-- early that they couldn't join the game.
 	timer.Simple(0.5, function() GAMEMODE:ShowSplash() end)
-	
-end
+end)
 
 local CircleMat = Material( "SGM/playercircle" )
 
@@ -107,22 +106,6 @@ hook.Add( "PrePlayerDraw", "DrawPlayerRing", function( ply ) GAMEMODE:DrawPlayer
 
 function GM:OnSpawnMenuOpen()
 	RunConsoleCommand( "lastinv" ) -- Fretta is derived from base and has no spawn menu, so give it a use, make it lastinv.
-end
-
--- This is to send the server to run a command
-function GM:PlayerBindPress( pl, bind, down )
-
-	-- Redirect binds to the spectate system
-	if ( pl:IsObserver() && down ) then
-		
-		if ( bind == "+jump" ) then 	RunConsoleCommand( "spec_mode" )	end
-		if ( bind == "+attack" ) then	RunConsoleCommand( "spec_next" )	end
-		if ( bind == "+attack2" ) then	RunConsoleCommand( "spec_prev" )	end
-		
-	end
-	
-	return false	
-	
 end
 
 function GM:TeamChangeNotification( ply, oldteam, newteam )

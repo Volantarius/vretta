@@ -76,7 +76,7 @@ GM.CanOnlySpectateOwnTeam = false			-- You can only spectate players on your own
 
 GM.PrintTeamChanges = true 			-- Show that a player has changed their team (ie.. suicide barrels)
 
-GM.RealisticFallDamage = false		-- Set to true if you want realistic fall damage instead of the fix 10 damage.
+GM.RealisticFallDamage = 0		-- 0: No realistic, 1: Fretta realistic, 2: CS:S realistic (SASS rip), 3: Source SDK?
 GM.PlayerDeathSounds = true 		-- Play the default death sounds, alternatively override with custom ones
 
 GM.PlayerPickupItems = CreateConVar( "fretta_gm_pickupitems", "0", {FCVAR_NOTIFY, FCVAR_REPLICATED}, "Allow players to pickup items with USE key" )
@@ -172,6 +172,21 @@ function GM:PlayerNoClip( pl, on )
 	-- Allow noclip if we're in single player or have cheats enabled
 	return (( GAMEMODE.PlayerCanNoClip || game.SinglePlayer() || GetConVar( "sv_cheats" ):GetBool() ) && ( IsValid(pl) && pl:Alive() ))
 end
+
+-- This replaces PlayerBindPress since it was slightly janky
+-- Also made so that only when someone is dead these are enabled, so entity driving won't conflict
+hook.Add("StartCommand", "VrettaSpectatorBinds", function( ply, cmd )
+	if ( ply:IsBot() or ply:Alive() ) then return end
+	
+	if ( ply:IsObserver() ) then
+		
+		cmd:RemoveKey( IN_JUMP ) -- Stop going up!
+		
+		if ( ply:KeyPressed(IN_JUMP) ) then ply:ConCommand( "spec_mode" ) end
+		if ( ply:KeyPressed(IN_ATTACK) ) then ply:ConCommand( "spec_next" ) end
+		if ( ply:KeyPressed(IN_ATTACK2) ) then ply:ConCommand( "spec_prev" ) end
+	end
+end)
 
 --[[---------------------------------------------------------
    Name: gamemode:GravGunPunt( )

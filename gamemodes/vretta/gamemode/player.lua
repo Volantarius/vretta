@@ -26,16 +26,25 @@ function GM:PlayerSwitchFlashlight( ply, on )
 	return BaseClass.PlayerSwitchFlashlight( self, ply, on )
 end
 
+-- Ripped from SASS
+local fall_fatal = 1100
+local fall_maxsafe = 580
+local fall_damage = 100 / ( fall_fatal - fall_maxsafe )
+
 function GM:GetFallDamage( ply, flFallSpeed )
-	if ( GAMEMODE.RealisticFallDamage ) then
+	if ( GAMEMODE.RealisticFallDamage or GAMEMODE.RealisticFallDamage == 1 ) then
+		-- Fretta, backwards compatable!
 		return flFallSpeed / 8
+		
+	elseif ( GAMEMODE.RealisticFallDamage == 2 ) then
+		-- SASS
+		return math.max( (speed - fall_maxsafe) * fall_damage * 1.25, 0 )
+		
+	elseif ( GAMEMODE.RealisticFallDamage == 3 ) then
+		-- the Source SDK value
+		return ( flFallSpeed - 526.5 ) * ( 100 / 396 )
+		
 	end
-	
-	--[[
-	if( GetConVarNumber( "mp_falldamage" ) > 0 ) then -- realistic fall damage is on
-		return ( flFallSpeed - 526.5 ) * ( 100 / 396 ) -- the Source SDK value
-	end
-	]]
 	
 	return 10
 end
