@@ -37,7 +37,7 @@ function GM:GetFallDamage( ply, flFallSpeed )
 		return flFallSpeed / 8
 		
 	elseif ( GAMEMODE.RealisticFallDamage == 2 ) then
-		-- SASS
+		-- SASS mimics CS:S fall damage!
 		return math.max( (speed - fall_maxsafe) * fall_damage * 1.25, 0 )
 		
 	elseif ( GAMEMODE.RealisticFallDamage == 3 ) then
