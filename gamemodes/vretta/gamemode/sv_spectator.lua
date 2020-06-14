@@ -47,7 +47,7 @@ function GM:IsValidSpectatorTarget( pl, ent )
 	
 	if ( !IsValid( ent ) ) then return false end
 	if ( ent == pl ) then return false end
-	if ( !table.HasValue( GAMEMODE:GetValidSpectatorEntityNames( pl ), ent:GetClass() ) ) then return false end
+	--if ( !table.HasValue( GAMEMODE:GetValidSpectatorEntityNames( pl ), ent:GetClass() ) ) then return false end
 	if ( ent:IsPlayer() && !ent:Alive() ) then return false end
 	if ( ent:IsPlayer() && ent:IsObserver() ) then return false end
 	if ( pl:Team() != TEAM_SPECTATOR && ent:IsPlayer() && GAMEMODE.CanOnlySpectateOwnTeam && pl:Team() != ent:Team() ) then return false end
@@ -62,7 +62,7 @@ end
 function GM:GetSpectatorTargets( pl )
 
 	local t = {}
-	for k, v in pairs( GAMEMODE:GetValidSpectatorEntityNames( pl ) ) do
+	for k, v in ipairs( GAMEMODE:GetValidSpectatorEntityNames( pl ) ) do
 		t = table.Merge( t, ents.FindByClass( v ) )
 	end
 	
@@ -114,17 +114,39 @@ function GM:StartEntitySpectate( pl )
 
 	local CurrentSpectateEntity = pl:GetObserverTarget()
 	
-	for i=1, 32 do
+	if ( GAMEMODE:IsValidSpectatorTarget( pl, CurrentSpectateEntity ) ) then
+		pl:SpectateEntity( CurrentSpectateEntity )
+		return
+	end
 	
-		if ( GAMEMODE:IsValidSpectatorTarget( pl, CurrentSpectateEntity ) ) then
-			pl:SpectateEntity( CurrentSpectateEntity )
+	local targets = GAMEMODE:GetSpectatorTargets( pl )
+	
+	if ( ( #targets == 1 and table.HasValue(targets, pl) ) or #targets == 0 ) then
+		GAMEMODE:ChangeObserverMode( pl, OBS_MODE_ROAMING )
+		return
+	end
+	
+	local randomInd = 0
+	local found = false
+	
+	for i=1, #targets do
+		
+		randomInd = math.random( 1, #targets - i - 1 )
+		
+		if ( GAMEMODE:IsValidSpectatorTarget( pl, targets[randomInd] ) ) then
+			pl:SpectateEntity( targets[randomInd] )
+			found = true
 			return
 		end
 		
-		CurrentSpectateEntity = GAMEMODE:FindRandomSpectatorTarget( pl )
+		table.remove( targets, randomInd )
 		
 	end
-
+	
+	if ( not found ) then
+		GAMEMODE:ChangeObserverMode( pl, OBS_MODE_ROAMING )
+	end
+	
 end
 
 --[[---------------------------------------------------------
@@ -133,19 +155,51 @@ end
 ---------------------------------------------------------]]
 function GM:NextEntitySpectate( pl )
 
-	local Target = pl:GetObserverTarget()
+	local cTarget = pl:GetObserverTarget()
 	
-	for i=1, 32 do
+	local targets = GAMEMODE:GetSpectatorTargets( pl )
 	
-		Target = GAMEMODE:FindNextSpectatorTarget( pl, Target )	
+	if ( ( #targets == 1 and table.HasValue(targets, pl) ) or #targets == 0 ) then
+		GAMEMODE:ChangeObserverMode( pl, OBS_MODE_ROAMING )
+		return
+	end
+	
+	local found = false
+	local cIndex = -1
+	
+	for k, v in ipairs(targets) do
 		
-		if ( GAMEMODE:IsValidSpectatorTarget( pl, Target ) ) then
-			pl:SpectateEntity( Target )
+		if ( cIndex ~= -1 and GAMEMODE:IsValidSpectatorTarget( pl, targets[k] ) ) then
+			pl:SpectateEntity( targets[k] )
+			found = true
 			return
 		end
-	
+		
+		if ( v == cTarget ) then
+			cIndex = k
+		end
+		
 	end
-
+	
+	if ( not found ) then
+		
+		-- Gotta test if this will also check the current target
+		for i=1, cIndex do
+			
+			if ( GAMEMODE:IsValidSpectatorTarget( pl, targets[i] ) ) then
+				pl:SpectateEntity( targets[i] )
+				found = true
+				return
+			end
+			
+		end
+		
+	end
+	
+	if ( not found ) then
+		GAMEMODE:ChangeObserverMode( pl, OBS_MODE_ROAMING )
+	end
+	
 end
 
 --[[---------------------------------------------------------
@@ -154,17 +208,48 @@ end
 ---------------------------------------------------------]]
 function GM:PrevEntitySpectate( pl )
 
-	local Target = pl:GetObserverTarget()
+	local cTarget = pl:GetObserverTarget()
 	
-	for i=1, 32 do
+	local targets = GAMEMODE:GetSpectatorTargets( pl )
 	
-		Target = GAMEMODE:FindPrevSpectatorTarget( pl, Target )	
+	if ( ( #targets == 1 and table.HasValue(targets, pl) ) or #targets == 0 ) then
+		GAMEMODE:ChangeObserverMode( pl, OBS_MODE_ROAMING )
+		return
+	end
+	
+	local found = false
+	local cIndex = -1
+	
+	for k=#targets, #targets, -1 do
 		
-		if ( GAMEMODE:IsValidSpectatorTarget( pl, Target ) ) then
-			pl:SpectateEntity( Target )
+		if ( cIndex ~= -1 and GAMEMODE:IsValidSpectatorTarget( pl, targets[k] ) ) then
+			pl:SpectateEntity( targets[k] )
+			found = true
 			return
 		end
+		
+		if ( targets[k] == cTarget ) then
+			cIndex = k
+		end
+		
+	end
 	
+	if ( not found ) then
+		
+		for i=cIndex, cIndex, -1 do
+			
+			if ( GAMEMODE:IsValidSpectatorTarget( pl, targets[i] ) ) then
+				pl:SpectateEntity( targets[i] )
+				found = true
+				return
+			end
+			
+		end
+		
+	end
+	
+	if ( not found ) then
+		GAMEMODE:ChangeObserverMode( pl, OBS_MODE_ROAMING )
 	end
 
 end
