@@ -77,8 +77,8 @@ end
 ---------------------------------------------------------]]
 function GM:FindRandomSpectatorTarget( pl )
 
-	local Targets = GAMEMODE:GetSpectatorTargets( pl )
-	return table.Random( Targets )
+	--local Targets = GAMEMODE:GetSpectatorTargets( pl )
+	--return table.Random( Targets )
 
 end
 
@@ -89,8 +89,8 @@ end
 ---------------------------------------------------------]]
 function GM:FindNextSpectatorTarget( pl, ent )
 
-	local Targets = GAMEMODE:GetSpectatorTargets( pl )
-	return table.FindNext( Targets, ent )
+	--local Targets = GAMEMODE:GetSpectatorTargets( pl )
+	--return table.FindNext( Targets, ent )
 
 end
 
@@ -101,8 +101,8 @@ end
 ---------------------------------------------------------]]
 function GM:FindPrevSpectatorTarget( pl, ent )
 
-	local Targets = GAMEMODE:GetSpectatorTargets( pl )
-	return table.FindPrev( Targets, ent )
+	--local Targets = GAMEMODE:GetSpectatorTargets( pl )
+	--return table.FindPrev( Targets, ent )
 
 end
 
@@ -273,6 +273,27 @@ function GM:ChangeObserverMode( pl, mode )
 	
 end
 
+-- table.FindNext could get removed so heres a similar thing
+local function tableFindNext( tbl, cValue )
+	
+	local cInd = -1
+	
+	for k, v in pairs( tbl ) do
+		
+		if ( v == cValue ) then
+			if ( k == #tbl ) then
+				cInd = 1
+			else
+				cInd = cInd + 1
+			end
+		end
+		
+	end
+	
+	return tbl[cInd]
+	
+end
+
 --[[---------------------------------------------------------
    Name: gamemode:BecomeObserver( Player pl )
    Desc: Called when we first become a spectator.
@@ -281,8 +302,10 @@ function GM:BecomeObserver( pl )
 	
 	local mode = pl:GetInfoNum( "cl_spec_mode", OBS_MODE_CHASE )
 	
-	if ( !table.HasValue( GAMEMODE:GetValidSpectatorModes( pl ), mode ) ) then 
-		mode = table.FindNext( GAMEMODE:GetValidSpectatorModes( pl ), mode )
+	local modes = GAMEMODE:GetValidSpectatorModes( pl )
+	
+	if ( !table.HasValue( modes, mode ) ) then 
+		mode = tableFindNext( modes, mode )
 	end
 	
 	GAMEMODE:ChangeObserverMode( pl, mode )
@@ -294,7 +317,7 @@ local function spec_mode( pl, cmd, args )
 	if ( !GAMEMODE:IsValidSpectator( pl ) ) then return end
 	
 	local mode = pl:GetObserverMode()
-	local nextmode = table.FindNext( GAMEMODE:GetValidSpectatorModes( pl ), mode )
+	local nextmode = tableFindNext( GAMEMODE:GetValidSpectatorModes( pl ), mode )
 	
 	GAMEMODE:ChangeObserverMode( pl, nextmode )
 	
