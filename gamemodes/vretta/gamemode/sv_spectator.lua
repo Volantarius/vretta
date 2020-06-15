@@ -335,8 +335,8 @@ local function spec_next( pl, cmd, args )
 	
 	local mode = pl:GetObserverMode()
 	
-	if ( !GAMEMODE:IsValidSpectator( pl ) ) then return end
 	if ( mode == OBS_MODE_ROAMING or mode == OBS_MODE_DEATHCAM or mode == OBS_MODE_FREEZECAM ) then return end
+	if ( !GAMEMODE:IsValidSpectator( pl ) ) then return end
 	if ( !table.HasValue( GAMEMODE:GetValidSpectatorModes( pl ), mode ) ) then return end
 	
 	GAMEMODE:NextEntitySpectate( pl )
@@ -349,8 +349,8 @@ local function spec_prev( pl, cmd, args )
 	
 	local mode = pl:GetObserverMode()
 	
-	if ( !GAMEMODE:IsValidSpectator( pl ) ) then return end
 	if ( mode == OBS_MODE_ROAMING or mode == OBS_MODE_DEATHCAM or mode == OBS_MODE_FREEZECAM ) then return end
+	if ( !GAMEMODE:IsValidSpectator( pl ) ) then return end
 	if ( !table.HasValue( GAMEMODE:GetValidSpectatorModes( pl ), mode ) ) then return end
 	
 	GAMEMODE:PrevEntitySpectate( pl )

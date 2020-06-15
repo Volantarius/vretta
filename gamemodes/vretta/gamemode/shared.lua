@@ -173,6 +173,14 @@ function GM:PlayerNoClip( pl, on )
 	return (( GAMEMODE.PlayerCanNoClip || game.SinglePlayer() || GetConVar( "sv_cheats" ):GetBool() ) && ( IsValid(pl) && pl:Alive() ))
 end
 
+hook.Add("StartCommand", "VrettaSpectatorBinds", function( ply, cmd )
+	if ( ply:IsBot() or ply:Alive() ) then return end
+	
+	if ( ply:IsObserver() ) then
+		cmd:RemoveKey( IN_JUMP )
+	end
+end)
+
 --[[---------------------------------------------------------
    Name: gamemode:GravGunPunt( )
    Desc: We're about to punt an entity (primary fire).
