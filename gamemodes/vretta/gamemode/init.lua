@@ -129,7 +129,6 @@ function GM:PlayerSpawn( pl, transition )
 		return
 	end
 	
-	-- Welp I don't know why I never had this here but this fixed alot of jank
 	if (plTeam == TEAM_CONNECTING || plTeam == TEAM_SPECTATOR || (GAMEMODE.TeamBased && plTeam == TEAM_UNASSIGNED)) then return end
 	
 	local Classes = team.GetClass( plTeam ) -- Returns nil if no classes
