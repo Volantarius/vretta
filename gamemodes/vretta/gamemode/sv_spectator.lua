@@ -220,7 +220,7 @@ function GM:PrevEntitySpectate( pl )
 	local found = false
 	local cIndex = -1
 	
-	for k=#targets, #targets, -1 do
+	for k=#targets, 1, -1 do
 		
 		if ( cIndex ~= -1 and GAMEMODE:IsValidSpectatorTarget( pl, targets[k] ) ) then
 			pl:SpectateEntity( targets[k] )
@@ -234,9 +234,13 @@ function GM:PrevEntitySpectate( pl )
 		
 	end
 	
+	if ( cIndex == 1 ) then
+		cIndex = #targets
+	end
+	
 	if ( not found ) then
 		
-		for i=cIndex, cIndex, -1 do
+		for i=cIndex, 1, -1 do
 			
 			if ( GAMEMODE:IsValidSpectatorTarget( pl, targets[i] ) ) then
 				pl:SpectateEntity( targets[i] )
@@ -278,13 +282,15 @@ local function tableFindNext( tbl, cValue )
 	
 	local cInd = -1
 	
-	for k, v in pairs( tbl ) do
+	for k, v in ipairs( tbl ) do
 		
 		if ( v == cValue ) then
 			if ( k == #tbl ) then
 				cInd = 1
+				return tbl[cInd]
 			else
-				cInd = cInd + 1
+				cInd = k + 1
+				return tbl[cInd]
 			end
 		end
 		
@@ -326,9 +332,12 @@ end
 concommand.Add( "spec_mode",  spec_mode )
 
 local function spec_next( pl, cmd, args )
-
+	
+	local mode = pl:GetObserverMode()
+	
 	if ( !GAMEMODE:IsValidSpectator( pl ) ) then return end
-	if ( !table.HasValue( GAMEMODE:GetValidSpectatorModes( pl ), pl:GetObserverMode() ) ) then return end
+	if ( mode == OBS_MODE_ROAMING or mode == OBS_MODE_DEATHCAM or mode == OBS_MODE_FREEZECAM ) then return end
+	if ( !table.HasValue( GAMEMODE:GetValidSpectatorModes( pl ), mode ) ) then return end
 	
 	GAMEMODE:NextEntitySpectate( pl )
 
@@ -337,9 +346,12 @@ end
 concommand.Add( "spec_next",  spec_next )
 
 local function spec_prev( pl, cmd, args )
-
+	
+	local mode = pl:GetObserverMode()
+	
 	if ( !GAMEMODE:IsValidSpectator( pl ) ) then return end
-	if ( !table.HasValue( GAMEMODE:GetValidSpectatorModes( pl ), pl:GetObserverMode() ) ) then return end
+	if ( mode == OBS_MODE_ROAMING or mode == OBS_MODE_DEATHCAM or mode == OBS_MODE_FREEZECAM ) then return end
+	if ( !table.HasValue( GAMEMODE:GetValidSpectatorModes( pl ), mode ) ) then return end
 	
 	GAMEMODE:PrevEntitySpectate( pl )
 

@@ -173,21 +173,6 @@ function GM:PlayerNoClip( pl, on )
 	return (( GAMEMODE.PlayerCanNoClip || game.SinglePlayer() || GetConVar( "sv_cheats" ):GetBool() ) && ( IsValid(pl) && pl:Alive() ))
 end
 
--- This replaces PlayerBindPress since it was slightly janky
--- Also made so that only when someone is dead these are enabled, so entity driving won't conflict
-hook.Add("StartCommand", "VrettaSpectatorBinds", function( ply, cmd )
-	if ( ply:IsBot() or ply:Alive() ) then return end
-	
-	if ( ply:IsObserver() ) then
-		
-		cmd:RemoveKey( IN_JUMP ) -- Stop going up!
-		
-		if ( ply:KeyPressed(IN_JUMP) ) then ply:ConCommand( "spec_mode" ) end
-		if ( ply:KeyPressed(IN_ATTACK) ) then ply:ConCommand( "spec_next" ) end
-		if ( ply:KeyPressed(IN_ATTACK2) ) then ply:ConCommand( "spec_prev" ) end
-	end
-end)
-
 --[[---------------------------------------------------------
    Name: gamemode:GravGunPunt( )
    Desc: We're about to punt an entity (primary fire).
