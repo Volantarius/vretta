@@ -50,7 +50,8 @@ function PANEL:Init()
 	self.List:DisableScrollbar()
 	self.List:SetMultiSelect( false ) -- Issue #11 on Fretta13
 	
-	self.List.OnClickLine = function( line, bClear ) end -- Issue #11 on Fretta13
+	-- May re-impliment line clicks, idk
+	self.List.OnClickLine = function( line, bClear ) end
 	
 	self.Header = vgui.Create( "TeamScoreboardHeader", self )
 

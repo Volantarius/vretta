@@ -80,12 +80,22 @@ function GM:AddScoreboardMute( ScoreBoard )
 
 	local f = function( ply ) 	
 		local muter = vgui.Create( "DImageButton", ScoreBoard )
-			muter:SetSize( 16, 16 )
-			muter:SetImage( "icon32/unmuted.png" )
+			muter:SetSize( 32, 32 )
+			
+			if ( ply:IsMuted() ) then
+				muter:SetImage( "icon32/muted.png" )
+			else
+				muter:SetImage( "icon32/unmuted.png" )
+			end
+			
+			muter.DoClick = function()
+				ply:SetMuted( !ply:IsMuted() )
+			end
+			
 			return muter
 	end
 	
-	ScoreBoard:AddColumn( "", 16, f, 360 )
+	ScoreBoard:AddColumn( "", 32, f, 0.5 )
 
 end
 
@@ -140,7 +150,7 @@ function GM:CreateScoreboard( ScoreBoard )
 	self:AddScoreboardKills( ScoreBoard )		-- 4
 	self:AddScoreboardDeaths( ScoreBoard )		-- 5
 	self:AddScoreboardPing( ScoreBoard )		-- 6
-	self:AddScoreboardMute( ScoreBoard )
+	self:AddScoreboardMute( ScoreBoard )		-- 7
 	
 	-- Here we sort by these columns (and descending), in this order. You can define up to 4
 	ScoreBoard:SetSortColumns( { 4, true, 5, false, 3, false } )

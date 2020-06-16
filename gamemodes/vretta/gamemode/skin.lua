@@ -232,16 +232,16 @@ function SKIN:PaintScorePanelLine( panel )
 	local BoxHeight = 21
 	
 	if ( !IsValid( panel.pPlayer ) || !panel.pPlayer:Alive() ) then
-		draw.RoundedBox( 4, 0, Tall*0.5 - BoxHeight*0.5, panel:GetWide(), BoxHeight, Color( 60, 60, 60, 255 ) )
+		draw.RoundedBox( 4, 0, Tall*0.5 - BoxHeight*0.5, panel:GetWide(), BoxHeight, Color( 60, 60, 60, 192 ) )
 		return
 	end
 
 	if ( panel.pPlayer == LocalPlayer() ) then
-		draw.RoundedBox( 4, 0, Tall*0.5 - BoxHeight*0.5, panel:GetWide(), BoxHeight, Color( 90, 90, 90, 255 ) )
+		draw.RoundedBox( 4, 0, Tall*0.5 - BoxHeight*0.5, panel:GetWide(), BoxHeight, Color( 90, 90, 90, 192 ) )
 		return
 	end
 
-	draw.RoundedBox( 4, 0, Tall*0.5 - BoxHeight*0.5, panel:GetWide(), BoxHeight, Color( 70, 70, 70, 255 ) )
+	draw.RoundedBox( 4, 0, Tall*0.5 - BoxHeight*0.5, panel:GetWide(), BoxHeight, Color( 70, 70, 70, 192 ) )
 		
 end
 
