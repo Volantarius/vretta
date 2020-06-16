@@ -50,6 +50,8 @@ function PANEL:Init()
 	self.List:DisableScrollbar()
 	self.List:SetMultiSelect( false ) -- Issue #11 on Fretta13
 	
+	self.List.OnClickLine = function( line, bClear ) end -- Issue #11 on Fretta13
+	
 	self.Header = vgui.Create( "TeamScoreboardHeader", self )
 
 end
@@ -131,6 +133,9 @@ function PANEL:FindPlayerLine( ply )
 	local line = self.List:AddLine()
 	line.pPlayer = ply
 	line.UpdateTime = {}
+	
+	-- Issue #11 on Fretta13, This actually has to be overridden
+	line.OnMousePressed = function( mcode ) end
 	
 	Derma_Hook( line, 	"Paint", 				"Paint", 	"ScorePanelLine" )
 	Derma_Hook( line, 	"ApplySchemeSettings", 	"Scheme", 	"ScorePanelLine" )

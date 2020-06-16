@@ -76,6 +76,19 @@ function GM:AddScoreboardPing( ScoreBoard )
 
 end
 
+function GM:AddScoreboardMute( ScoreBoard )
+
+	local f = function( ply ) 	
+		local muter = vgui.Create( "DImageButton", ScoreBoard )
+			muter:SetSize( 16, 16 )
+			muter:SetImage( "icon32/unmuted.png" )
+			return muter
+	end
+	
+	ScoreBoard:AddColumn( "", 16, f, 360 )
+
+end
+
 -- THESE SHOULD BE THE ONLY FUNCTION YOU NEED TO OVERRIDE
 function GM:PositionScoreboard( ScoreBoard )
 	
@@ -127,6 +140,7 @@ function GM:CreateScoreboard( ScoreBoard )
 	self:AddScoreboardKills( ScoreBoard )		-- 4
 	self:AddScoreboardDeaths( ScoreBoard )		-- 5
 	self:AddScoreboardPing( ScoreBoard )		-- 6
+	self:AddScoreboardMute( ScoreBoard )
 	
 	-- Here we sort by these columns (and descending), in this order. You can define up to 4
 	ScoreBoard:SetSortColumns( { 4, true, 5, false, 3, false } )
