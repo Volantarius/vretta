@@ -45,6 +45,7 @@ function GM:Initialize()
 	util.AddNetworkString("RoundAddedTime")
 	util.AddNetworkString("PlayableGamemodes")
 	util.AddNetworkString("fretta_teamchange")
+	util.AddNetworkString("fretta_votenotify")
 	
 	-- We need a default single game controller so that we can also have a delay and what not
 	

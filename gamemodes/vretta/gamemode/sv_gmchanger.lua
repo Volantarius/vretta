@@ -191,7 +191,7 @@ end
 
 function GM:CountVotesForChange()
 
-	if ( CurTime() >= GetConVarNumber( "fretta_votegraceperiod" ) ) then -- can't vote too early on
+	if ( CurTime() >= fretta_votegraceperiod:GetFloat() ) then -- can't vote too early on
 	
 		if ( GAMEMODE:InGamemodeVote() ) then return end
 
@@ -209,31 +209,23 @@ end
 
 function GM:VoteForChange( ply )
 	
-	if ( GetConVarNumber( "fretta_voting" ) == 0 ) then return end
-	if ( ply:GetNWBool( "WantsVote" ) ) then return end
+	if ( not fretta_voting:GetBool() ) then return end
+	if ( ply:GetNWBool( "WantsVote", false ) ) then return end
 	
 	ply:SetNWBool( "WantsVote", true )
 	
 	local VotesNeeded = GAMEMODE:GetVotesNeededForChange()
-	local NeedTxt = "" 
-	if ( VotesNeeded > 0 ) then NeedTxt = ", Color( 80, 255, 50 ), [[ (need "..VotesNeeded.." more) ]] " end
 	
-	if ( CurTime() < GetConVarNumber( "fretta_votegraceperiod" ) ) then -- can't vote too early on
-		local timediff = math.Round( GetConVarNumber( "fretta_votegraceperiod" ) - CurTime() )
-		BroadcastLua( "chat.AddText( Entity("..ply:EntIndex().."), Color( 255, 255, 255 ), [[ voted to change the gamemode]] )" )
-	else
-		BroadcastLua( "chat.AddText( Entity("..ply:EntIndex().."), Color( 255, 255, 255 ), [[ voted to change the gamemode]] "..NeedTxt.." )" )
-	end
-	
-	Msg( ply:Nick() .. " voted to change the gamemode\n" )
-	
-	timer.Simple( 5, function() GAMEMODE:CountVotesForChange() end )
+	net.Start( "fretta_votenotify" )
+		net.WriteEntity( ply )
+		net.WriteUInt( VotesNeeded, 16 )
+	net.Broadcast()
 
 end
 
 concommand.Add( "VoteForChange", function( pl, cmd, args ) GAMEMODE:VoteForChange( pl ) end )
-timer.Create( "VoteForChangeThink", 10, 0, function() if ( GAMEMODE ) then GAMEMODE.CountVotesForChange( GAMEMODE ) end end )
 
+timer.Create( "VoteForChangeThink", 10, 0, function() if ( GAMEMODE ) then GAMEMODE.CountVotesForChange( GAMEMODE ) end end )
 
 function GM:ClearPlayerWants()
 
