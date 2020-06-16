@@ -8,7 +8,7 @@ function GM:VoteNotification( ply, votesNeeded )
 		
 		chat.AddText( team.GetColor( ply:Team() ), ply:Nick(), Color( 255, 255, 255 ), " voted to change the gamemode", Color( 80, 255, 50 ), NeedTxt )
 		
-		chat.PlaySound( "buttons/button15.wav" ) -- TODO: Make this use surface.playSound for more obnoxious tick sounds
+		chat.PlaySound()
 		
 	end
 end

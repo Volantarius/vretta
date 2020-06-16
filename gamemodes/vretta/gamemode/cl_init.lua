@@ -137,6 +137,9 @@ end
 function GM:TeamChangeNotification( ply, oldteam, newteam )
 	if( ply && ply:IsValid() ) then
 		local nick = ply:Nick()
+		
+		if ( LocalPlayer() == ply and nick == "unconnected" ) then return end
+		
 		local oldTeamColor = team.GetColor( oldteam )
 		local newTeamName = team.GetName( newteam )
 		local newTeamColor = team.GetColor( newteam )
@@ -147,7 +150,7 @@ function GM:TeamChangeNotification( ply, oldteam, newteam )
 			chat.AddText( oldTeamColor, nick, color_white, " joined ", newTeamColor, newTeamName )
 		end
 		
-		chat.PlaySound( "buttons/button15.wav" )
+		chat.PlaySound()
 	end
 end
 net.Receive( "fretta_teamchange", function( um )  if ( GAMEMODE ) then GAMEMODE:TeamChangeNotification( net.ReadEntity(), net.ReadUInt(16), net.ReadUInt(16) ) end end )

@@ -31,10 +31,6 @@ function GM:ScoreboardHide()
 	
 end
 
-
-function GM:ScoreboardPlayerPressed(pl)
-end
-
 function GM:AddScoreboardAvatar( ScoreBoard )
 
 	local f = function( ply ) 	

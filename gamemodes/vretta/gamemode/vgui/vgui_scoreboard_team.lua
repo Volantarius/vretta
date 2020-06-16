@@ -3,7 +3,7 @@ local PANEL = {}
 Derma_Hook( PANEL, 	"Paint", 				"Paint", 	"TeamScoreboardHeader" )
 Derma_Hook( PANEL, 	"ApplySchemeSettings", 	"Scheme", 	"TeamScoreboardHeader" )
 Derma_Hook( PANEL, 	"PerformLayout", 		"Layout", 	"TeamScoreboardHeader" )
-	
+
 function PANEL:Init()
 
 	self.Columns = {}
@@ -48,6 +48,7 @@ function PANEL:Init()
 	self.List = vgui.Create( "DListView", self )
 	self.List:SetSortable( false )
 	self.List:DisableScrollbar()
+	self.List:SetMultiSelect( false ) -- Issue #11 on Fretta13
 	
 	self.Header = vgui.Create( "TeamScoreboardHeader", self )
 
@@ -89,7 +90,6 @@ function PANEL:PerformLayout()
 	self.List:StretchToParent( 0, self.Header:GetTall(), 0, 0 )
 	self.List:SetDataHeight( self.pMain:GetRowHeight() )
 	self.List:SetHeaderHeight( 16 )
-	self.List:SetHideHeaders( false ) --RIGHT HERE
 	
 end
 
@@ -122,11 +122,6 @@ function PANEL:SetSortColumns( ... )
 	
 end
 
-local function LinePressed(self, mcode)
-	if mcode == MOUSE_LEFT and IsValid(self.pPlayer) then
-		gamemode.Call("ScoreboardPlayerPressed", self.pPlayer)
-	end
-end
 function PANEL:FindPlayerLine( ply )
 
 	for _, line in pairs( self.List.Lines ) do
@@ -136,8 +131,6 @@ function PANEL:FindPlayerLine( ply )
 	local line = self.List:AddLine()
 	line.pPlayer = ply
 	line.UpdateTime = {}
-
-	line.OnMousePressed = LinePressed
 	
 	Derma_Hook( line, 	"Paint", 				"Paint", 	"ScorePanelLine" )
 	Derma_Hook( line, 	"ApplySchemeSettings", 	"Scheme", 	"ScorePanelLine" )

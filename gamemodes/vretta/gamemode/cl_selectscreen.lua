@@ -83,8 +83,8 @@ function PANEL:AddPanelButton( icon, title, pnlfnc )
 	
 	Derma_Hook( btn, "Paint", 				"Paint", 		"PanelButton" )
 	Derma_Hook( btn, "PaintOver",			"PaintOver", 	"PanelButton" )
-	Derma_Hook( btn, "ApplySchemeSettings", "Scheme", 		"PanelButton" )
-	Derma_Hook( btn, "PerformLayout", 		"Layout", 		"PanelButton" )
+	--Derma_Hook( btn, "ApplySchemeSettings", "Scheme", 		"PanelButton" )
+	--Derma_Hook( btn, "PerformLayout", 		"Layout", 		"PanelButton" )
 	
 	local fnClick = function()
 		
@@ -197,6 +197,16 @@ function PANEL:AddSpacer( h )
 	
 end
 
+function PANEL:AddButtonsSpacer( h )
+
+	local btn = vgui.Create( "Panel", self.pnlButtons )
+	btn:SetSize( 200, h )
+	self.pnlButtons:AddItem( btn )
+	table.insert( self.Buttons, btn )
+	return btn
+	
+end
+
 --[[---------------------------------------------------------
    SetHeaderText
 ---------------------------------------------------------]]
@@ -278,13 +288,12 @@ function GM:ShowTeam()
 			if ( ID != TEAM_CONNECTING && ID != TEAM_UNASSIGNED && ( ID != TEAM_SPECTATOR || GAMEMODE.AllowSpectating ) && TeamInfo.Joinable ) then
 				
 				if ( ID == TEAM_SPECTATOR ) then
-					TeamPanel:AddSpacer( 10 )
+					TeamPanel:AddButtonsSpacer( 10 )
 				end
 				
 				local strName = TeamInfo.Name
-				local func = function() RunConsoleCommand( "changeteam", ID ) end
 				
-				local btn = TeamPanel:AddSelectButton( strName, func )
+				local btn = TeamPanel:AddSelectButton( strName, function() RunConsoleCommand( "changeteam", ID ) end )
 				btn.m_colBackground = TeamInfo.Color
 				btn.Think = function( self ) 
 								self:SetText( Format( "%s (%i)", strName, team.NumPlayers( ID ) ))
