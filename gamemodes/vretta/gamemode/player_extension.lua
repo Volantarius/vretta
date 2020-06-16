@@ -2,8 +2,6 @@
 local meta = FindMetaTable( "Player" )
 if (!meta) then return end 
 
--- This isn't Respawn time actually
--- This is the delay before you can respawn
 function meta:SetRespawnTime( num )
 	
 	self.m_iSpawnTime = num

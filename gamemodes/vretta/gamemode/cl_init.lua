@@ -112,15 +112,25 @@ end
 function GM:PlayerBindPress( pl, bind, down )
 
 	-- Redirect binds to the spectate system
-	if ( !pl:Alive() && pl:IsObserver() && down ) then
-
+	-- NEW: We only want to allow spec switching in certain spec modes!
+	-- Deathcam and freezecam should be switched out of by vretta with a timer using minimum death linger time
+	
+	if ( pl:Alive() ) then return false end
+	
+	local mode = pl:GetObserverMode()
+	
+	if ( mode > OBS_MODE_NONE && down ) then
+		
 		if ( bind == "+jump" ) then 	RunConsoleCommand( "spec_mode" )	end
-		if ( bind == "+attack" ) then	RunConsoleCommand( "spec_next" )	end
-		if ( bind == "+attack2" ) then	RunConsoleCommand( "spec_prev" )	end
-
+		
+		if ( mode < OBS_MODE_ROAMING ) then
+			if ( bind == "+attack" ) then	RunConsoleCommand( "spec_next" )	end
+			if ( bind == "+attack2" ) then	RunConsoleCommand( "spec_prev" )	end
+		end
+		
 	end
 
-	return false	
+	return false
 
 end
 

@@ -1,3 +1,26 @@
+-- table.FindNext could get removed so heres a similar thing
+local function tableFindNext( tbl, cValue )
+	
+	local cInd = -1
+	
+	for k, v in ipairs( tbl ) do
+		
+		if ( v == cValue ) then
+			if ( k == #tbl ) then
+				cInd = 1
+				return tbl[cInd]
+			else
+				cInd = k + 1
+				return tbl[cInd]
+			end
+		end
+		
+	end
+	
+	-- Return first value if not found
+	return tbl[1]
+	
+end
 
 --[[---------------------------------------------------------
    Name: gamemode:GetValidSpectatorModes( Player ply )
@@ -67,42 +90,6 @@ function GM:GetSpectatorTargets( pl )
 	end
 	
 	return t
-
-end
-
---[[---------------------------------------------------------
-   Name: gamemode:FindRandomSpectatorTarget( Player pl )
-   Desc: Finds a random player/ent we can spectate.
-		 This is called when a player is first put in spectate.
----------------------------------------------------------]]
-function GM:FindRandomSpectatorTarget( pl )
-
-	--local Targets = GAMEMODE:GetSpectatorTargets( pl )
-	--return table.Random( Targets )
-
-end
-
---[[---------------------------------------------------------
-   Name: gamemode:FindNextSpectatorTarget( Player pl, Entity ent )
-   Desc: Finds the next entity we can spectate.
-		 ent param is the current entity we are viewing.
----------------------------------------------------------]]
-function GM:FindNextSpectatorTarget( pl, ent )
-
-	--local Targets = GAMEMODE:GetSpectatorTargets( pl )
-	--return table.FindNext( Targets, ent )
-
-end
-
---[[---------------------------------------------------------
-   Name: gamemode:FindPrevSpectatorTarget( Player pl, Entity ent )
-   Desc: Finds the previous entity we can spectate.
-		 ent param is the current entity we are viewing.
----------------------------------------------------------]]
-function GM:FindPrevSpectatorTarget( pl, ent )
-
-	--local Targets = GAMEMODE:GetSpectatorTargets( pl )
-	--return table.FindPrev( Targets, ent )
 
 end
 
@@ -183,7 +170,6 @@ function GM:NextEntitySpectate( pl )
 	
 	if ( not found ) then
 		
-		-- Gotta test if this will also check the current target
 		for i=1, cIndex do
 			
 			if ( GAMEMODE:IsValidSpectatorTarget( pl, targets[i] ) ) then
@@ -264,7 +250,14 @@ end
 ---------------------------------------------------------]]
 function GM:ChangeObserverMode( pl, mode )
 	
-	if ( pl:GetInfoNum( "cl_spec_mode", 0 ) != mode ) then
+	local modeCl = pl:GetInfoNum( "cl_spec_mode", OBS_MODE_ROAMING )
+	
+	-- If mode is -1 we will use the player's spec mode
+	if ( mode < 1 or mode > OBS_MODE_ROAMING or mode == nil ) then
+		mode = math.Clamp( modeCl, OBS_MODE_FIXED, OBS_MODE_ROAMING )
+	end
+	
+	if ( modeCl ~= mode ) then
 		pl:ConCommand( "cl_spec_mode "..mode )
 	end
 	
@@ -274,29 +267,6 @@ function GM:ChangeObserverMode( pl, mode )
 	
 	pl:Spectate( mode )
 	pl:SpectateEntity( nil )
-	
-end
-
--- table.FindNext could get removed so heres a similar thing
-local function tableFindNext( tbl, cValue )
-	
-	local cInd = -1
-	
-	for k, v in ipairs( tbl ) do
-		
-		if ( v == cValue ) then
-			if ( k == #tbl ) then
-				cInd = 1
-				return tbl[cInd]
-			else
-				cInd = k + 1
-				return tbl[cInd]
-			end
-		end
-		
-	end
-	
-	return tbl[cInd]
 	
 end
 
@@ -310,8 +280,8 @@ function GM:BecomeObserver( pl )
 	
 	local modes = GAMEMODE:GetValidSpectatorModes( pl )
 	
-	if ( !table.HasValue( modes, mode ) ) then 
-		mode = tableFindNext( modes, mode )
+	if ( !table.HasValue( modes, mode ) ) then
+		mode = tableFindNext( modes, mode ) -- Will get the first valid spectator mode
 	end
 	
 	GAMEMODE:ChangeObserverMode( pl, mode )
@@ -323,7 +293,14 @@ local function spec_mode( pl, cmd, args )
 	if ( !GAMEMODE:IsValidSpectator( pl ) ) then return end
 	
 	local mode = pl:GetObserverMode()
-	local nextmode = tableFindNext( GAMEMODE:GetValidSpectatorModes( pl ), mode )
+	local modes = GAMEMODE:GetValidSpectatorModes( pl )
+	
+	if ( !table.HasValue( modes, mode ) ) then
+		GAMEMODE:ChangeObserverMode( pl, -1 ) -- Return to player's chosen spec mode
+		return
+	end
+	
+	local nextmode = tableFindNext( modes, mode )
 	
 	GAMEMODE:ChangeObserverMode( pl, nextmode )
 	
@@ -335,9 +312,12 @@ local function spec_next( pl, cmd, args )
 	
 	local mode = pl:GetObserverMode()
 	
-	if ( mode == OBS_MODE_ROAMING or mode == OBS_MODE_DEATHCAM or mode == OBS_MODE_FREEZECAM ) then return end
 	if ( !GAMEMODE:IsValidSpectator( pl ) ) then return end
-	if ( !table.HasValue( GAMEMODE:GetValidSpectatorModes( pl ), mode ) ) then return end
+	
+	if ( !table.HasValue( GAMEMODE:GetValidSpectatorModes( pl ), mode ) ) then
+		GAMEMODE:ChangeObserverMode( pl, -1 ) -- Return to player's chosen spec mode
+		return
+	end
 	
 	GAMEMODE:NextEntitySpectate( pl )
 
@@ -349,9 +329,12 @@ local function spec_prev( pl, cmd, args )
 	
 	local mode = pl:GetObserverMode()
 	
-	if ( mode == OBS_MODE_ROAMING or mode == OBS_MODE_DEATHCAM or mode == OBS_MODE_FREEZECAM ) then return end
 	if ( !GAMEMODE:IsValidSpectator( pl ) ) then return end
-	if ( !table.HasValue( GAMEMODE:GetValidSpectatorModes( pl ), mode ) ) then return end
+	
+	if ( !table.HasValue( GAMEMODE:GetValidSpectatorModes( pl ), mode ) ) then
+		GAMEMODE:ChangeObserverMode( pl, -1 ) -- Return to player's chosen spec mode
+		return
+	end
 	
 	GAMEMODE:PrevEntitySpectate( pl )
 
