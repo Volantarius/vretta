@@ -142,20 +142,10 @@ end
    Name: gamemode:PlayerFootstep( Player ply, Vector pos, Number foot, String sound, Float volume, CReceipientFilter filter )
    Desc: Player's feet makes a sound, this also calls the player's class Footstep function.
 		 If you want to disable all footsteps set GM.NoPlayerFootsteps to true.
-		 If you want to disable footsteps on a class, set Class.DisableFootsteps to true.
 ---------------------------------------------------------]]
 function GM:PlayerFootstep( ply, pos, foot, sound, volume, filter ) 
 
-	if( GAMEMODE.NoPlayerFootsteps || !ply:Alive() || ply:Team() == TEAM_SPECTATOR || ply:IsObserver() ) then
-		return true
-	end
-	
-	local pClass = player_manager.GetPlayerClass( ply )
-	local gClass = baseclass.Get( pClass )
-	
-	if ( gClass == nil ) then return end
-	
-	if ( gClass.DisableFootsteps ) then
+	if( GAMEMODE.NoPlayerFootsteps || IsValid(ply) || !ply:Alive() || ply:Team() == TEAM_SPECTATOR || ply:IsObserver() ) then
 		return true
 	end
 	

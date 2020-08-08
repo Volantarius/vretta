@@ -69,3 +69,15 @@ function GM:CreateTeams()
 	team.SetSpawnPoint( TEAM_SPECTATOR, { "info_player_start", "info_player_terrorist", "info_player_counterterrorist", "info_player_combine", "info_player_rebel" } )
 
 end
+
+function GM:PlayerFootstep( ply, pos, foot, sound, volume, filter ) 
+
+	if ( IsValid(ply) || !ply:Alive() ) then
+		return true
+	end
+
+	if( GAMEMODE.NoPlayerFootsteps || ply:Team() == TEAM_SPECTATOR || ply:Team() == TEAM_BARREL || ply:IsObserver() ) then
+		return true
+	end
+	
+end

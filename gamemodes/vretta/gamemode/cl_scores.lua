@@ -89,14 +89,21 @@ function GM:AddScoreboardMute( ScoreBoard )
 			end
 			
 			muter.DoClick = function()
-				ply:SetMuted( !ply:IsMuted() )
+				local muted = ply:IsMuted()
+
+				ply:SetMuted( not muted )
+
+				if ( not muted ) then
+					muter:SetImage( "icon32/muted.png" )
+				else
+					muter:SetImage( "icon32/unmuted.png" )
+				end
 			end
 			
 			return muter
 	end
 	
-	ScoreBoard:AddColumn( "", 32, f, 0.5 )
-
+	ScoreBoard:AddColumn( "", 32, f, 5 )
 end
 
 -- THESE SHOULD BE THE ONLY FUNCTION YOU NEED TO OVERRIDE

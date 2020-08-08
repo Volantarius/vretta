@@ -3,6 +3,30 @@ AddCSLuaFile( "shared.lua" )
 
 include( "shared.lua" )
 
+function GM:ProcessResultText( result, resulttext )
+	if ( resulttext == nil ) then resulttext = "" end
+	
+	if ( result == TEAM_BARREL ) then
+		BroadcastLua( "LocalPlayer():EmitSound( \"song_antlionguard_stinger1\" )" )
+		
+		resulttext = "The barrels wiped out all the humans!"
+	end
+	
+	if ( result == TEAM_HUMAN ) then
+		BroadcastLua( "LocalPlayer():EmitSound( \"song_credits_2\" )" )
+		
+		resulttext = "The humans survived the barrel attack!"
+	end
+	
+	if ( result == -1 ) then
+		resulttext = "Draw!"-- Shouldn't actually happen
+	end
+	
+	PrintMessage( HUD_PRINTTALK, resulttext )
+	
+	return resulttext
+end
+
 -- Don't start until at least one player is in game
 function GM:CanStartRound( iNum )
 	local humans = team.NumPlayers( TEAM_HUMAN )
@@ -12,14 +36,9 @@ function GM:CanStartRound( iNum )
 	return false
 end
 
-function GM:OnRoundStart( num )
-	UTIL_UnFreezeAllPlayers()
-end
-
 function GM:ResetTeams( )
 	for k, v in pairs( team.GetPlayers( TEAM_BARREL ) ) do
-		GAMEMODE:PlayerJoinTeam( v, TEAM_HUMAN )
-		player_manager.SetPlayerClass( v, "Human" )
+		GAMEMODE:PlayerJoinTeam( v, TEAM_HUMAN )-- Assigns player class already
 	end
 end
 
@@ -29,8 +48,6 @@ function GM:CheckRoundEnd()
 	if ( !GAMEMODE:InRound() ) then return end
 	
 	if( team.NumPlayers( TEAM_HUMAN ) <= 0 and team.NumPlayers( TEAM_BARREL ) > 0 ) then
-		PrintMessage( HUD_PRINTTALK, "The barrels wiped out all the humans!" )
-		BroadcastLua( "LocalPlayer():EmitSound( \"song_antlionguard_stinger1\" )" )
 		GAMEMODE:RoundEndWithResult( TEAM_BARREL )
 		
 		GAMEMODE:ResetTeams()
@@ -45,12 +62,9 @@ function GM:RoundTimerEnd()
 	if ( !GAMEMODE:InRound() ) then return end
 	
 	if( team.NumPlayers( TEAM_HUMAN ) >= 1 ) then 
-		PrintMessage( HUD_PRINTTALK, "The humans survived the barrel attack!" )
-		BroadcastLua( "LocalPlayer():EmitSound( \"song_credits_2\" )" )
 		GAMEMODE:RoundEndWithResult( TEAM_HUMAN )
-	else
-		PrintMessage( HUD_PRINTTALK, "Game draw" ) // this should never happen	
-		GAMEMODE:RoundEndWithResult( ROUND_RESULT_DRAW )
+	else	
+		GAMEMODE:RoundEndWithResult( -1 )
 	end	
 	
 	GAMEMODE:ResetTeams()
@@ -77,6 +91,5 @@ function GM:PlayerCanJoinTeam( ply, teamid )
 	end
 	
 	-- Returns the base gamemode's PlayerCanJoinTeam
-	--return BaseClass.PlayerCanJoinTeam( self, ply, teamid )
 	return self.BaseClass:PlayerCanJoinTeam( ply, teamid )
 end

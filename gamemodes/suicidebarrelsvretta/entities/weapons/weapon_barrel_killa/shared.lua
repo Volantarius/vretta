@@ -7,29 +7,28 @@ if( CLIENT ) then
 	SWEP.Slot					= 0
 	SWEP.SlotPos				= 0
 	
+	SWEP.UseHands 				= true
+	SWEP.ViewModelFOV 			= 54
+
+	killicon.Add("weapon_barrel_killa", "killicons/swep_default", Color(255, 255, 255, 255))
 end
 
 SWEP.Base						= "weapon_base"
 
-SWEP.HoldType				= "pistol"
-
 SWEP.Contact					= ""
 SWEP.Purpose					= "Use this to kill those damn barrels."
 SWEP.Instructions				= ""
- 
+
 SWEP.ViewModel					= "models/weapons/c_pistol.mdl"
 SWEP.WorldModel					= "models/weapons/w_pistol.mdl"
-
-SWEP.UseHands = true
-SWEP.ViewModelFOV = 54
 
 SWEP.Primary.Sound				= Sound( "Weapon_Pistol.Single" )
 SWEP.Primary.Recoil				= 3.5
 SWEP.Primary.Damage				= 100
-SWEP.Primary.Cone					= 0.01
-SWEP.Primary.Automatic		= false
+SWEP.Primary.Cone				= 0.01
+SWEP.Primary.Automatic			= false
 SWEP.Primary.ClipSize			= 1
-SWEP.Primary.Ammo					= "pistol"
+SWEP.Primary.Ammo				= "pistol"
 
 SWEP.Secondary.ClipSize			= -1 
 SWEP.Secondary.DefaultClip		= -1 
@@ -37,7 +36,7 @@ SWEP.Secondary.Automatic		= false
 SWEP.Secondary.Ammo				= "none" 
 
 function SWEP:Initialize()
-	self:SetWeaponHoldType( self.HoldType )
+	self:SetWeaponHoldType( "pistol" )
 end
 
 /*---------------------------------------------------------

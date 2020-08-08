@@ -32,13 +32,13 @@ local fall_maxsafe = 580
 local fall_damage = 100 / ( fall_fatal - fall_maxsafe )
 
 function GM:GetFallDamage( ply, flFallSpeed )
-	if ( GAMEMODE.RealisticFallDamage or GAMEMODE.RealisticFallDamage == 1 ) then
+	if ( GAMEMODE.RealisticFallDamage == true or GAMEMODE.RealisticFallDamage == 1 ) then
 		-- Fretta, backwards compatable!
 		return flFallSpeed / 8
 		
 	elseif ( GAMEMODE.RealisticFallDamage == 2 ) then
 		-- SASS mimics CS:S fall damage!
-		return math.max( (speed - fall_maxsafe) * fall_damage * 1.25, 0 )
+		return math.max( (flFallSpeed - fall_maxsafe) * fall_damage * 1.25, 0 )
 		
 	elseif ( GAMEMODE.RealisticFallDamage == 3 ) then
 		-- the Source SDK value
@@ -47,6 +47,73 @@ function GM:GetFallDamage( ply, flFallSpeed )
 	end
 	
 	return 10
+end
+
+function GM:PlayerShouldTakeDamage( ply, attacker )
+
+	if ( GAMEMODE.NoPlayerSelfDamage && IsValid( attacker ) && ply == attacker ) then return false end
+	if ( GAMEMODE.NoPlayerDamage ) then return false end
+	
+	if ( GAMEMODE.NoPlayerTeamDamage && IsValid( attacker ) ) then
+		if ( attacker.Team && ply:Team() == attacker:Team() && ply != attacker ) then return false end
+	end
+	
+	if ( IsValid( attacker ) && attacker:IsPlayer() && GAMEMODE.NoPlayerPlayerDamage ) then return false end
+	if ( IsValid( attacker ) && !attacker:IsPlayer() && GAMEMODE.NoNonPlayerPlayerDamage ) then return false end
+	
+	return true
+
+end
+
+-- Removed potential of breaking shit
+hook.Add( "PostPlayerDeath", "FrettaSpec", function( ply )
+	-- Note, this gets called AFTER DoPlayerDeath.. AND it gets called
+	-- for KillSilent too. So if Freezecam isn't set by DoPlayerDeath, we
+	-- pick up the slack by setting DEATHCAM here.
+	
+	if ( ply:GetObserverMode() == OBS_MODE_NONE ) then
+		ply:Spectate( OBS_MODE_DEATHCAM )
+	end
+end)
+
+function GM:DoPlayerDeath( ply, attacker, dmginfo )
+	
+	ply:CreateRagdoll()
+	ply:AddDeaths( 1 )
+	
+	if ( attacker:IsValid() && attacker:IsPlayer() ) then
+		
+		if ( attacker == ply ) then
+			
+			if ( GAMEMODE.TakeFragOnSuicide ) then
+				
+				attacker:AddFrags( -1 )
+				
+				if ( GAMEMODE.TeamBased && GAMEMODE.AddFragsToTeamScore ) then
+					team.AddScore( attacker:Team(), -1 )
+				end
+				
+			end
+			
+		else
+			
+			attacker:AddFrags( 1 )
+			
+			if ( GAMEMODE.TeamBased && GAMEMODE.AddFragsToTeamScore ) then
+				team.AddScore( attacker:Team(), 1 )
+			end
+			
+		end
+		
+	end
+	
+	if ( GAMEMODE.EnableFreezeCam && IsValid( attacker ) && attacker != ply ) then
+	
+		ply:SpectateEntity( attacker )
+		ply:Spectate( OBS_MODE_FREEZECAM )
+		
+	end
+	
 end
 
 --[[---------------------------------------------------------

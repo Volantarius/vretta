@@ -30,7 +30,7 @@ function PANEL:AddEntityText( txt )
 		
 	end
 
-	if( txt:IsValid() ) then
+	if( txt ) then
 		self:AddText( txt:GetClass(), GAMEMODE.DeathNoticeDefaultColor )	
 	else
 		self:AddText( tostring( txt ) )	
@@ -42,7 +42,7 @@ function PANEL:AddItem( item )
 
 	table.insert( self.Items, item )
 	self:InvalidateLayout( true )
-	
+
 end
 
 function PANEL:AddText( txt, color )
@@ -57,8 +57,8 @@ function PANEL:AddText( txt, color )
 	lbl:ApplySchemeSettings()
 	lbl:SetText( txt )
 	
-	if( string.Left( txt , 1 ) == "#" && !color ) then color = GAMEMODE.DeathNoticeDefaultColor end // localised ent death
-	if( GAMEMODE.DeathNoticeTextColor && !color ) then color = GAMEMODE.DeathNoticeTextColor end // something else
+	if( string.Left( txt , 1 ) == "#" && !color ) then color = GAMEMODE.DeathNoticeDefaultColor end -- localised ent death
+	if( GAMEMODE.DeathNoticeTextColor && !color ) then color = GAMEMODE.DeathNoticeTextColor end -- something else
 	if ( !color ) then color = color_white end
 	
 	lbl:SetTextColor( color )
@@ -79,8 +79,9 @@ function PANEL:AddIcon( txt )
 	
 	else
 	
-		self:AddText( "killed" )
-	
+		--self:AddText( "killed" )
+		self:AddText( "#"..txt )
+
 	end
 	
 end

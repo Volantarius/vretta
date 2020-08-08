@@ -23,18 +23,7 @@ include( 'cl_hud.lua' )
 include( 'cl_deathnotice.lua' )
 include( 'cl_scores.lua' )
 include( 'cl_notify.lua' )
-
-language.Add( "env_laser", "Laser" )
-language.Add( "env_explosion", "Explosion" )
-language.Add( "func_door", "Door" )
-language.Add( "func_door_rotating", "Door" )
-language.Add( "trigger_hurt", "Hazard" )
-language.Add( "func_rotating", "Hazard" )
-language.Add( "worldspawn", "Gravity" )
-language.Add( "prop_physics", "Prop" )
-language.Add( "prop_physics_respawnable", "Prop" )
-language.Add( "prop_physics_multiplayer", "Prop" )
-language.Add( "entityflame", "Fire" )
+include( 'cl_targetid.lua' )
 
 surface.CreateLegacyFont( "Trebuchet MS", 69, 700, true, false, "FRETTA_HUGE" )
 surface.CreateLegacyFont( "Trebuchet MS", 69, 700, true, false, "FRETTA_HUGE_SHADOW", true )
@@ -133,24 +122,3 @@ function GM:PlayerBindPress( pl, bind, down )
 	return false
 
 end
-
-function GM:TeamChangeNotification( ply, oldteam, newteam )
-	if( ply && ply:IsValid() ) then
-		local nick = ply:Nick()
-		
-		if ( LocalPlayer() == ply and nick == "unconnected" ) then return end
-		
-		local oldTeamColor = team.GetColor( oldteam )
-		local newTeamName = team.GetName( newteam )
-		local newTeamColor = team.GetColor( newteam )
-		
-		if( newteam == TEAM_SPECTATOR ) then
-			chat.AddText( oldTeamColor, nick, color_white, " is now spectating" ) 
-		else
-			chat.AddText( oldTeamColor, nick, color_white, " joined ", newTeamColor, newTeamName )
-		end
-		
-		chat.PlaySound()
-	end
-end
-net.Receive( "fretta_teamchange", function( um )  if ( GAMEMODE ) then GAMEMODE:TeamChangeNotification( net.ReadEntity(), net.ReadUInt(16), net.ReadUInt(16) ) end end )

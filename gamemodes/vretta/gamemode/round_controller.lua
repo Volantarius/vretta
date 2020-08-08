@@ -29,13 +29,33 @@ function GM:OnRoundWinner( ply, resulttext )
 
 end
 
+--
+-- Vretta change: Instead of multiple loops we use one and call a function that hopefully simplifies prepping
+--
+
+--[[-------------------------------------------------------------------------
+	PrepPlayer (NEW)
+
+	Helper function to lower 'for' loop count when pre starting a round
+
+	This is used in PlayerDeathThink for whenever a player changes to a team while waiting to start a round!
+-------------------------------------------------------------------------]]
+function GM:PrepPlayer( ply )
+	ply:StripWeapons()
+	ply:StripAmmo()
+	ply:Spawn()
+	ply:Freeze( true )
+end
+
 function GM:OnPreRoundStart( num )
 
 	game.CleanUpMap()
 	
-	UTIL_StripAllPlayers()
-	UTIL_SpawnAllPlayers()
-	UTIL_FreezeAllPlayers()
+	for k, ply in pairs( player.GetAll() ) do
+		if ( ply:CanRespawn() && ply:Team() != TEAM_SPECTATOR && ply:Team() != TEAM_CONNECTING ) then
+			GAMEMODE:PrepPlayer( ply )
+		end
+	end
 
 end
 
@@ -124,6 +144,10 @@ function GM:PreRoundStart( iNum )
 	SetGlobalInt( "RoundNumber", iNum )
 	SetGlobalFloat( "RoundStartTime", CurTime() + GAMEMODE.RoundPreStartTime )
 	
+	-- Maybe try to add RoundStarting, so that players who want to play
+	-- Can spawn in and what not
+	SetGlobalBool( "RoundStarting", true ) -- Vretta new
+
 	for id,ply in pairs( player.GetAll() ) do
 		ply:SetNWInt( "OldTeam", ply:Team() )
 	end
@@ -143,6 +167,8 @@ function GM:RoundStart()
 	local roundDuration = GAMEMODE:GetRoundTime( roundNum )
 	
 	GAMEMODE:OnRoundStart( roundNum )
+
+	SetGlobalBool( "RoundStarting", false ) -- Vretta new
 
 	timer.Create( "RoundEndTimer", roundDuration, 0, function() GAMEMODE:RoundTimerEnd() end )
 	timer.Create( "CheckRoundEnd", 1, 0, function() GAMEMODE:CheckRoundEnd() end )
@@ -263,8 +289,14 @@ function GM:CheckPlayerDeathRoundEnd()
 	
 end
 
-hook.Add( "PlayerDisconnected", "RoundCheck_PlayerDisconnect", function() timer.Simple( 0.2, function() GAMEMODE:CheckPlayerDeathRoundEnd() end ) end )
-hook.Add( "PostPlayerDeath", "RoundCheck_PostPlayerDeath", function() timer.Simple( 0.2, function() GAMEMODE:CheckPlayerDeathRoundEnd() end ) end )
+-- Probably need to be in a think instead..
+hook.Add( "PlayerDisconnected", "RoundCheck_PlayerDisconnect", function()
+	timer.Simple( 0.2, function() GAMEMODE:CheckPlayerDeathRoundEnd() end )
+end )
+
+hook.Add( "PostPlayerDeath", "RoundCheck_PostPlayerDeath", function()
+	timer.Simple( 0.2, function() GAMEMODE:CheckPlayerDeathRoundEnd() end )
+end )
 
 --
 -- You should use this to check any round end conditions 
@@ -324,7 +356,7 @@ function GM:SelectCurrentlyWinningPlayer()
 
 	for k,v in pairs( player.GetAll() ) do
 	
-		if v:Frags() > topscore and v:Team() != TEAM_CONNECTING and v:Team() != TEAM_UNASSIGNED and v:Team() != TEAM_SPECTATOR then
+		if ( v:Frags() > topscore and v:Team() != TEAM_CONNECTING and v:Team() != TEAM_UNASSIGNED and v:Team() != TEAM_SPECTATOR ) then
 		
 			winner = v
 			topscore = v:Frags()

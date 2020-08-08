@@ -3,21 +3,24 @@ local function tableFindNext( tbl, cValue )
 	
 	local cInd = -1
 	
-	for k, v in ipairs( tbl ) do
-		
-		if ( v == cValue ) then
-			if ( k == #tbl ) then
-				cInd = 1
-				return tbl[cInd]
-			else
-				cInd = k + 1
-				return tbl[cInd]
+	if ( cValue ) then
+		for k, v in ipairs( tbl ) do
+			
+			if ( v == cValue ) then
+				if ( k == #tbl ) then
+					cInd = 1
+					return tbl[cInd]
+				else
+					cInd = k + 1
+					return tbl[cInd]
+				end
 			end
+			
 		end
-		
+	else
+		return tbl[1]
 	end
 	
-	-- Return first value if not found
 	return tbl[1]
 	
 end

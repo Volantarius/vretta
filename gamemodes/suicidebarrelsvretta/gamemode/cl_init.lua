@@ -1,5 +1,9 @@
 include( 'shared.lua' )
 
-function GM:HUDDrawTargetID()
-	return false
+-- Only show id's from same teams
+-- Vretta only function!
+function GM:ShouldDrawTargetID( target, localplyTeam )
+	if ( target:Team() ~= localplyTeam ) then
+		return
+	end
 end

@@ -274,6 +274,7 @@ function PANEL:Paint()
 end
 
 vgui_Splash = vgui.RegisterTable( PANEL, "DPanel" )
+
 local TeamPanel = nil
 
 function GM:ShowTeam()

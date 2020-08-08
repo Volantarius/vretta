@@ -29,7 +29,7 @@ PLAYER.UseVMHands			= true		-- Uses viewmodel hands
 
 -- Fretta features!
 PLAYER.DrawTeamRing 		= true
-PLAYER.DisableFootsteps		= false
+--PLAYER.DisableFootsteps		= false	-- NEW, just override the function instead!
 
 function PLAYER:SetupDataTables()
 end
@@ -76,7 +76,11 @@ end
 -- add stuff here
 
 -- Serverside ONLY
--- add stuff here
+function PLAYER:Death( inflictor, attacker )
+	-- inflictor and attacker can be nil!
+	-- This will only be called from PLAYER:Kill or from direct attacks
+	-- IS NOT CALLED FROM KillSilent!!!!
+end
 
 -- Shared
 function PLAYER:KeyPress( key ) end

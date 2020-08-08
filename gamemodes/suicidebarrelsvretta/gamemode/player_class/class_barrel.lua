@@ -12,7 +12,6 @@ PLAYER.PlayerModel			= "models/props_c17/oildrum001_explosive.mdl"
 PLAYER.MaxHealth			= 1
 PLAYER.StartHealth			= 1
 PLAYER.StartArmor			= 0
-PLAYER.DisableFootsteps		= true
 PLAYER.DrawTeamRing			= false
 PLAYER.UseVMHands			= false
 
@@ -29,15 +28,15 @@ end
 
 function PLAYER:Spawn()
 
-	self.Player.NextTaunt = CurTime() + 1;
-	self.Player.CanExplodeAfter = CurTime() + 1;
+	self.Player.NextTaunt = CurTime() + 1
+	self.Player.CanExplodeAfter = CurTime() + 1
 	
 	self.Player:StripWeapons()
 	self.Player:SetViewOffset( Vector( 0, 0, 42 ) )
 
 end
 
-function PLAYER:Death()
+function PLAYER:Death( inflictor, attacker )
 	
 	local boom = ents.Create( "env_explosion" )
 	boom:SetPos( self.Player:GetPos() )
@@ -50,7 +49,7 @@ end
 
 function PLAYER:KeyPress( key )
 	
-	if !self.Player:Alive() then return end
+	if (not self.Player:Alive()) then return end
 	
 	if( key == IN_ATTACK and self.Player.CanExplodeAfter and CurTime() >= self.Player.CanExplodeAfter ) then
 		
@@ -65,7 +64,7 @@ function PLAYER:KeyPress( key )
 		self.Player.CanExplodeAfter = CurTime() + 2.5
 		
 	end
- 
+	
 	if( key == IN_ATTACK2 and self.Player.NextTaunt and CurTime() >= self.Player.NextTaunt ) then
 		self.Player:EmitSound( table.Random( TAUNTS ), 100, 140 )
 		self.Player.NextTaunt = CurTime() + 2

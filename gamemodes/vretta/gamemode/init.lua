@@ -28,8 +28,10 @@ AddCSLuaFile( "cl_hud.lua" )
 AddCSLuaFile( "cl_deathnotice.lua" )
 AddCSLuaFile( "cl_scores.lua" )
 AddCSLuaFile( "cl_notify.lua" )
+AddCSLuaFile( "cl_targetid.lua" )
 
 include( "shared.lua" )
+include( "sv_playerdeath.lua" )
 include( "player.lua" )
 include( "sv_gmchanger.lua" )
 include( "sv_spectator.lua" )
@@ -75,14 +77,14 @@ function GM:PlayerInitialSpawn( pl, transition )
 	pl:SetNWBool( "FirstSpawn", true )
 	
 	-- Players will always spawn when joining the game
-	-- Kinda weird behaviour but in GM:PlayerSpawn we can account for this
-	-- and kill them before playing a player class that isn't meant for spectating
+	-- In GM:PlayerSpawn we can account for this and kill them
+	-- before playing a player class that isn't meant for spectating
 	
 	GAMEMODE:CheckPlayerReconnected( pl )
 end
 
 function GM:CheckPlayerReconnected( pl )
-	if table.HasValue( GAMEMODE.ReconnectedPlayers, pl:UniqueID() ) then
+	if ( table.HasValue( GAMEMODE.ReconnectedPlayers, pl:AccountID() ) ) then
 		GAMEMODE:PlayerReconnected( pl )
 	end
 end
@@ -93,11 +95,11 @@ end
 ---------------------------------------------------------]]
 function GM:PlayerReconnected( pl )
 	-- Use this hook to do stuff when a player rejoins and has been in the server previously
-	-- I guess for VIP things?
+	-- Maybe join the same team, frags, etc when rejoining
 end
 
 function GM:PlayerDisconnected( pl )
-	table.insert( GAMEMODE.ReconnectedPlayers, pl:UniqueID() )
+	table.insert( GAMEMODE.ReconnectedPlayers, pl:AccountID() )
 	
 	BaseClass.PlayerDisconnected(self, pl)
 end  
@@ -362,22 +364,6 @@ function GM:PlayerCanJoinTeam( ply, teamid )
 	return BaseClass.PlayerCanJoinTeam( self, ply, teamid )
 end
 
-function GM:PlayerShouldTakeDamage( ply, attacker )
-
-	if ( GAMEMODE.NoPlayerSelfDamage && IsValid( attacker ) && ply == attacker ) then return false end
-	if ( GAMEMODE.NoPlayerDamage ) then return false end
-	
-	if ( GAMEMODE.NoPlayerTeamDamage && IsValid( attacker ) ) then
-		if ( attacker.Team && ply:Team() == attacker:Team() && ply != attacker ) then return false end
-	end
-	
-	if ( IsValid( attacker ) && attacker:IsPlayer() && GAMEMODE.NoPlayerPlayerDamage ) then return false end
-	if ( IsValid( attacker ) && !attacker:IsPlayer() && GAMEMODE.NoNonPlayerPlayerDamage ) then return false end
-	
-	return true
-
-end
-
 function GM:PlayerDeathThink( pl )
 	pl.DeathTime = pl.DeathTime or CurTime()
 	local timeDead = CurTime() - pl.DeathTime
@@ -392,11 +378,19 @@ function GM:PlayerDeathThink( pl )
 	-- Dont ever respawn if in spectate mode!!
 	if ( pTeam == TEAM_SPECTATOR || ( GAMEMODE.TeamBased && pTeam == TEAM_UNASSIGNED ) ) then return end
 	
+	-- NEW
+	-- If were waiting to start a round, allow players to spawn and wait for round start!
+	if ( GAMEMODE.RoundBased and GAMEMODE:InRound() and GetGlobalBool( "RoundStarting", false ) and pl:CanRespawn() ) then
+		pl:SetNWInt( "OldTeam", pTeam )
+		GAMEMODE:PrepPlayer( pl ) -- NEW in round_controller.lua
+		return
+	end
+
 	-- If we're in a round based game, player NEVER spawns in death think
 	if ( GAMEMODE.NoAutomaticSpawning ) then return end
 	
 	-- Also during a round based game, don't allow respawns between transitioning rounds
-	if ( not GAMEMODE:InRound() and GAMEMODE.RoundBased ) then return end
+	if ( GAMEMODE.RoundBased and not GAMEMODE:InRound() ) then return end
 	
 	-- The gamemode is holding the player from respawning.
 	-- Probably because they have to choose a class..
@@ -433,57 +427,6 @@ function GM:PlayerDeathThink( pl )
 		pl:Spawn()
 		return
 	end
-end
-
--- Removed potential of breaking shit
-hook.Add( "PostPlayerDeath", "FrettaSpec", function( ply )
-	-- Note, this gets called AFTER DoPlayerDeath.. AND it gets called
-	-- for KillSilent too. So if Freezecam isn't set by DoPlayerDeath, we
-	-- pick up the slack by setting DEATHCAM here.
-	
-	if ( ply:GetObserverMode() == OBS_MODE_NONE ) then
-		ply:Spectate( OBS_MODE_DEATHCAM )
-	end
-end)
-
-function GM:DoPlayerDeath( ply, attacker, dmginfo )
-	
-	ply:CreateRagdoll()
-	ply:AddDeaths( 1 )
-	
-	if ( attacker:IsValid() && attacker:IsPlayer() ) then
-		
-		if ( attacker == ply ) then
-			
-			if ( GAMEMODE.TakeFragOnSuicide ) then
-				
-				attacker:AddFrags( -1 )
-				
-				if ( GAMEMODE.TeamBased && GAMEMODE.AddFragsToTeamScore ) then
-					team.AddScore( attacker:Team(), -1 )
-				end
-				
-			end
-			
-		else
-			
-			attacker:AddFrags( 1 )
-			
-			if ( GAMEMODE.TeamBased && GAMEMODE.AddFragsToTeamScore ) then
-				team.AddScore( attacker:Team(), 1 )
-			end
-			
-		end
-		
-	end
-	
-	if ( GAMEMODE.EnableFreezeCam && IsValid( attacker ) && attacker != ply ) then
-	
-		ply:SpectateEntity( attacker )
-		ply:Spectate( OBS_MODE_FREEZECAM )
-		
-	end
-	
 end
 
 --[[---------------------------------------------------------

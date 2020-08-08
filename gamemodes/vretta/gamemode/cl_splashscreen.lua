@@ -1,4 +1,6 @@
 
+local vrettaSplashFonts = {"FRETTA_LARGE", "FRETTA_MEDIUM"}
+
 local PANEL = {}
 
 --[[---------------------------------------------------------
@@ -6,30 +8,28 @@ local PANEL = {}
 ---------------------------------------------------------]]
 function PANEL:Init()
 	
-	local fonts = GAMEMODE:GetSplashScreenFonts()
-	
 	self:SetText( "" )
 	self.DoClick = function() RunConsoleCommand( "seensplashlocal" ) RunConsoleCommand( "seensplash" ) self:Remove() end
 	self:SetSkin( GAMEMODE.HudSkin )
 	
 	self.lblGamemodeName = vgui.Create( "DLabel", self )
 		self.lblGamemodeName:SetText( GAMEMODE.Name )
-		self.lblGamemodeName:SetFont( fonts[1] )
+		self.lblGamemodeName:SetFont( vrettaSplashFonts[1] )
 		self.lblGamemodeName:SetColor( color_white )
 		
 	self.lblGamemodeAuthor = vgui.Create( "DLabel", self )
 		self.lblGamemodeAuthor:SetText( "by " .. GAMEMODE.Author )
-		self.lblGamemodeAuthor:SetFont( fonts[2] )
+		self.lblGamemodeAuthor:SetFont( vrettaSplashFonts[2] )
 		self.lblGamemodeAuthor:SetColor( color_white )
 		
 	self.lblServerName = vgui.Create( "DLabel", self )
 		self.lblServerName:SetText( GetHostName() )
-		self.lblServerName:SetFont( fonts[2] )
+		self.lblServerName:SetFont( vrettaSplashFonts[2] )
 		self.lblServerName:SetColor( color_white )
 		
 	self.lblIP = vgui.Create( "DLabel", self )
 		self.lblIP:SetText( "0.0.0.0" )
-		self.lblIP:SetFont( fonts[2] )
+		self.lblIP:SetFont( vrettaSplashFonts[2] )
 		self.lblIP:SetColor( color_white )
 		
 	
@@ -109,11 +109,4 @@ function GM:PaintSplashScreen( w, h, selectscreen )
 	
 	-- Customised splashscreen render here ( The center bit! )
 	return false
-end
-
-function GM:GetSplashScreenFonts()
-	-- Set Main Splash fonts here!
-	
-	--      Gamemode Name,   Smaller rest
-	return {"FRETTA_LARGE", "FRETTA_MEDIUM"}
 end

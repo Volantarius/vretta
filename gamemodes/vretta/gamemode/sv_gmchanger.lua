@@ -211,6 +211,7 @@ function GM:VoteForChange( ply )
 	
 	if ( not fretta_voting:GetBool() ) then return end
 	if ( ply:GetNWBool( "WantsVote", false ) ) then return end
+	if ( CurTime() < fretta_votegraceperiod:GetFloat() ) then return end-- can't vote too early on
 	
 	ply:SetNWBool( "WantsVote", true )
 	
@@ -220,7 +221,9 @@ function GM:VoteForChange( ply )
 		net.WriteEntity( ply )
 		net.WriteUInt( VotesNeeded, 16 )
 	net.Broadcast()
-
+	
+	timer.Adjust( "VoteForChangeThink", 10, 0, function() if ( GAMEMODE ) then GAMEMODE.CountVotesForChange( GAMEMODE ) end end )
+	
 end
 
 concommand.Add( "VoteForChange", function( pl, cmd, args ) GAMEMODE:VoteForChange( pl ) end )
