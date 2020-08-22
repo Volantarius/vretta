@@ -1,6 +1,6 @@
 # Vretta
 
-Conversion / update of the fretta gamemode for Garry's Mod. Forked from Fretta13 by Jetboom.
+Conversion / update of the Fretta gamemode for Garry's Mod. Forked from Fretta13 by Jetboom.
 
 Vretta is a heavily modified version of Fretta13, intended for new gamemodes.
 Fretta13 gamemodes will have to be rewritten to use this base!
