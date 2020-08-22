@@ -76,7 +76,7 @@ function GM:PlayerFootstep( ply, pos, foot, sound, volume, filter )
 		return true
 	end
 
-	if( GAMEMODE.NoPlayerFootsteps || ply:Team() == TEAM_SPECTATOR || ply:Team() == TEAM_BARREL || ply:IsObserver() ) then
+	if( ply:Team() == TEAM_BARREL ) then
 		return true
 	end
 	

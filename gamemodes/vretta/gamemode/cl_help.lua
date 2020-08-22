@@ -115,7 +115,6 @@ function GM:ShowHelp()
 	
 end
 
--- Moved from cl_gmchanger.lua
 local ClassChooser = nil
 cl_classsuicide = CreateConVar( "cl_classsuicide", "0", { FCVAR_ARCHIVE } )
 

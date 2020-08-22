@@ -118,7 +118,7 @@ net.Receive( "NPCKilledNPC", RecvNPCKilledNPC )
 ---------------------------------------------------------]]
 function GM:ParseExtendedDeathIcons( pnl, customdmg, victim, inflictor, attacker )
 
-	--65536 (2^32) Limited to 16 individual bits because its a 16 bit number
+	--256 possible
 
 	if ( bit.band( customdmg, 1 ) > 0 ) then
 		pnl:AddIcon( "csheadshot" )

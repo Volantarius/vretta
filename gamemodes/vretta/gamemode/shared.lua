@@ -36,7 +36,6 @@ GM.NoPlayerSelfDamage = false		-- Allow players to hurt themselves?
 GM.NoPlayerTeamDamage = true		-- Allow team-members to hurt each other?
 GM.NoPlayerPlayerDamage = false 	-- Allow players to hurt each other?
 GM.NoNonPlayerPlayerDamage = false 	-- Allow damage from non players (physics, fire etc)
-GM.NoPlayerFootsteps = false		-- When true, all players have silent footsteps
 GM.PlayerCanNoClip = false			-- When true, players can use noclip without sv_cheats
 GM.TakeFragOnSuicide = true			-- -1 frag on suicide
 
@@ -136,20 +135,6 @@ function GM:KeyRelease( ply, key )
 	
 	if ( player_manager.RunClass( ply, "KeyRelease", key ) ) then return true end
 	
-end
-
---[[---------------------------------------------------------
-   Name: gamemode:PlayerFootstep( Player ply, Vector pos, Number foot, String sound, Float volume, CReceipientFilter filter )
-   Desc: Player's feet makes a sound, this also calls the player's class Footstep function.
-		 If you want to disable all footsteps set GM.NoPlayerFootsteps to true.
----------------------------------------------------------]]
-function GM:PlayerFootstep( ply, pos, foot, sound, volume, filter ) 
-
-	if( GAMEMODE.NoPlayerFootsteps || IsValid(ply) || !ply:Alive() || ply:Team() == TEAM_SPECTATOR || ply:IsObserver() ) then
-		return true
-	end
-	
-	BaseClass.PlayerFootstep( self, ply, pos, foot, sound, volume, filter )
 end
 
 --[[---------------------------------------------------------
